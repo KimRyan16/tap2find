@@ -1,16 +1,25 @@
 import express from "express";
-import { homePage } from "../controllers/homeController.js";
+import landingRoutes from "./landing.js";
+import authRoutes from "./auth.js";
+import adminRoutes from "./admin.js";
+import professorRoutes from "./professor.js";
+import studentRoutes from "./student.js";
+
 const router = express.Router();
-router.get("/", homePage);
 
-import { loginPage, registerPage, forgotPasswordPage, dashboardPage, loginUser, registerUser, logoutUser } from "../controllers/authController.js";
+// Landing routes
+router.use("/", landingRoutes);
 
-router.get("/login", loginPage);
-router.post("/login", loginUser);
-router.get("/register", registerPage);
-router.post("/register", registerUser);
-router.get("/forgot-password", forgotPasswordPage);
-router.get("/dashboard", dashboardPage);
-router.get("/logout", logoutUser);
+// Auth routes
+router.use("/", authRoutes);
+
+// Admin routes
+router.use("/", adminRoutes);
+
+// Professor routes
+router.use("/", professorRoutes);
+
+// Student routes
+router.use("/", studentRoutes);
 
 export default router;
