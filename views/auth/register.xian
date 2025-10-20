@@ -1,9 +1,10 @@
 <!-- Using auth layout -->
-<div class="min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+<div class="bg-white min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg w-full max-w-md">
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">XianFire 🔥</h1>
-            <h2 class="text-2xl font-semibold text-gray-700">Create Account</h2>
+            <canvas id="dotlottie-canvas" width="150" height="150" class="mx-auto mb-4"></canvas>
+            <h2 class="text-3xl font-bold text-gray-700">Create Account</h2>
+            <p class="text-base text-gray-600/50 mt-2">Fill out the form below with accurate details to complete your access.</p>
         </div>
         
         <form method="POST" action="/register" class="space-y-4">
@@ -23,7 +24,7 @@
                        placeholder="Password">
             </div>
             <button type="submit" 
-                    class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    class="w-full bg-yellow-400 text-white py-2 px-4 rounded-full hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 Register
             </button>
         </form>
@@ -33,3 +34,21 @@
         </div>
     </div>
 </div>
+
+<script type="module">
+    import { DotLottie } from '/js/dotlottie/index.js';
+
+    const canvas = document.querySelector('#dotlottie-canvas');
+    if (canvas) {
+        const dotLottie = new DotLottie({
+            autoplay: true,
+            loop: true,
+            canvas,
+            src: 'https://lottie.host/c2a65bfb-9a59-4cb3-8f96-629c6d4bca7c/fW80y6TJ7p.lottie'
+        });
+        // Ensure rendering starts after module is ready
+        if (typeof dotLottie.play === 'function') {
+            dotLottie.play();
+        }
+    }
+</script>
