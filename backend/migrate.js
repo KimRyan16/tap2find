@@ -54,7 +54,7 @@ const { createDb } = await inquirer.prompt([
 
 if (!createDb) {
   console.log("❌ Migration aborted.");
-  process.exit(0);
+  process.exit(0); // ✅ safe way to exit instead of illegal return
 }
 
 await mongoose.connect(DB_URI, {
@@ -63,6 +63,7 @@ await mongoose.connect(DB_URI, {
 });
 console.log("✅ MongoDB connected!");
 
+// Create empty collections if they don’t exist
 for (const [name, model] of Object.entries(models)) {
   const exists = await model.findOne();
   if (!exists) {
