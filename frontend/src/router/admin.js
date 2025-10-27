@@ -5,11 +5,13 @@ const adminRoutes = [
   {
     path: '/admin',
     component: AdminLayout,
+    meta: { requiresAuth: true, role: 'admin' }, // ✅ added here
     children: [
       {
         path: '',
         name: 'admin-dashboard',
         component: Dashboard,
+        meta: { requiresAuth: true, role: 'admin' }
       },
     ],
   },

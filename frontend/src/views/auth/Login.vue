@@ -202,31 +202,38 @@ const handleLogin = async () => {
   
   errors.value = { email: '', password: '' }
 
-  // Client-side validation
-  if (!form.value.email) errors.value.email = 'Email is required.'
+  // 🧠 Validate inputs
+  if (!form.value.email)
+    errors.value.email = 'Email is required.'
   else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.value.email))
     errors.value.email = 'Please enter a valid email address.'
-
-  if (!form.value.password) errors.value.password = 'Password is required.'
+  if (!form.value.password)
+    errors.value.password = 'Password is required.'
   if (errors.value.email || errors.value.password) return
 
   isLoading.value = true
-
   try {
     const res = await api.post('/auth/login', {
-      email: form.value.email, 
+      email: form.value.email,
       password: form.value.password
     })
 
     if (res.data.success) {
-      // ✅ Store token, redirect to dashboard
-      localStorage.setItem('token', res.data.token)
-      router.push('/student')
+      const { token, user } = res.data
+      localStorage.setItem('token', token)
+      localStorage.setItem('role', user.role)
+      localStorage.setItem('user', JSON.stringify(user))
+
+      // Redirect based on role
+      if (user.role === 'student') router.push('/student')
+      if (user.role === 'professor') router.push('/professor')
+      if (user.role === 'admin') router.push('/admin')
     }
+
   } catch (err) {
     const msg = err.response?.data?.message || 'An error occurred.'
-
-    if (msg.includes('not found'))
+    
+    if (msg.includes('User not found'))
       errors.value.email = 'No account found with this email.'
     else if (msg.includes('Incorrect password'))
       errors.value.password = 'Incorrect password.'

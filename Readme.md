@@ -9,3 +9,8 @@ Student
 ℹ: Added ResetPassword.vue file [ Modify UI as needed ] 
 ℹ: Added error message ( per input | overall ) handling [ Modify UI as needed ]
 ℹ: Added loading states at buttons
+
+Oct. 27 Monday 10:25 ->
+
+ℹ: Added guard function to prevent unauthorized access to the page for other roles. 
+ℹ: Added error folder with Unauthorized.vue file.
