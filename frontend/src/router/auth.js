@@ -9,33 +9,33 @@ import Unauthorized from '@/views/error/Unauthorized.vue'
 const authRoutes = [
   {
     path: '/login',
-    name: 'login',
     component: AuthLayout,
     children: [
       {
         path: '',
+        name: 'login',
         component: Login,
       },
     ],
   },
   {
     path: '/register',
-    name: 'register',
     component: AuthLayout,
     children: [
       {
         path: '',
+        name: 'register',
         component: Register,
       },
     ],
   },
   {
     path: '/forgot-password',
-    name: 'forgot-password',
     component: AuthLayout,
     children: [
       {
         path: '',
+        name: 'forgot-password',
         component: ForgotPassword,
       },
     ],
@@ -47,6 +47,7 @@ const authRoutes = [
     children: [
       {
         path: '',
+        name: 'verify-email',
         component: VerifyEmail,
       },
     ],

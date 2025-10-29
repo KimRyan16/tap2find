@@ -1,6 +1,7 @@
 <template>
   <div class="auth-page bg-white">
-    <div class="bg-white py-8 px-6">
+    <!-- Auth Card -->
+    <div class="bg-white py-8 px-6 shadow-lg rounded-lg">
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="flex items-center justify-center">

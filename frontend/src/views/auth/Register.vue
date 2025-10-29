@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <!-- Auth Card -->
-    <div class="bg-white py-8 px-6">
+    <div class="bg-white py-8 px-6 shadow-lg rounded-lg">
       <!-- Header -->
       <div class="text-center mb-8">
         <img src="/t2flogo.gif" alt="Tap2Find Logo" class="w-24 h-24 mx-auto mb-2" />
