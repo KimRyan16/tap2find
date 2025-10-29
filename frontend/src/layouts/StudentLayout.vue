@@ -46,10 +46,10 @@
             <div class="relative">
               <button @click="profileOpen = !profileOpen" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                 <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                  <span class="text-white text-sm font-medium">JS</span>
+                  <span class="text-white text-sm font-medium">{{ userInitials }}</span>
                 </div>
                 <div class="hidden md:block text-left">
-                  <p class="text-sm font-medium text-gray-700">John Student</p>
+                  <p class="text-sm font-medium text-gray-700">{{ user.firstName }} {{ user.lastName }}</p>
                   <p class="text-xs text-gray-500">CS-2024</p>
                 </div>
                 <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,15 +60,47 @@
               <!-- Dropdown Menu -->
               <div v-if="profileOpen" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 <div class="px-4 py-2 border-b border-gray-100">
-                  <p class="text-sm font-medium text-gray-900">John Student</p>
-                  <p class="text-xs text-gray-500">john.student@university.edu</p>
+                  <p class="text-sm font-medium text-gray-900">{{ user.firstName }} {{ user.lastName }}</p>
+                  <p class="text-xs text-gray-500">{{ user.emailAddress }}</p>
                 </div>
                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile Settings</a>
                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Academic Records</a>
                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Help & Support</a>
-                <div class="border-t border-gray-100 mt-2 pt-2">
-                  <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</a>
-                </div>
+                 <button
+                    @click="confirmLogout"
+                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 rounded-md"
+                  >
+                    Logout
+                  </button>
+
+                  <!-- Custom confirmation modal [ Modify as needed ] -->
+                  <div
+                    v-if="showConfirm"
+                    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+                  >
+                    <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+                      <h2 class="text-lg font-semibold mb-2">Confirm Logout</h2>
+                      <p class="text-gray-600 mb-4">
+                        Are you sure you want to log out, 
+                        <span class="font-medium">{{ user.firstName }}</span>?
+                      </p>
+
+                      <div class="flex justify-end gap-3">
+                        <button
+                          @click="showConfirm = false"
+                          class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          @click="handleLogout"
+                          class="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  </div>
               </div>
             </div>
           </div>
@@ -120,7 +152,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const showConfirm = ref(false)
+
+// 🧩 Reactive user state
+const user = ref({
+  firstName: '',
+  lastName: '',
+  role: '',
+  emailAddress: ''
+})
 
 const mobileMenuOpen = ref(false)
 const profileOpen = ref(false)
@@ -132,11 +176,35 @@ const handleClickOutside = (event) => {
   }
 }
 
-// Add event listener for clicking outside
-import { onMounted, onUnmounted } from 'vue'
+const confirmLogout = () => {
+  showConfirm.value = true
+}
+
+// Handle logout
+const handleLogout = () => {
+  // ✅ Clear session data
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  localStorage.removeItem('user')
+
+  showConfirm.value = false
+
+  // Redirect to login page
+  router.push('/login')
+}
+
+const userInitials = computed(() => {
+  const first = user.value.firstName?.charAt(0) || ''
+  const last = user.value.lastName?.charAt(0) || ''
+  return (first + last).toUpperCase()
+})
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+   const storedUser = localStorage.getItem('user')
+  if (storedUser) {
+    user.value = JSON.parse(storedUser)
+  }
 })
 
 onUnmounted(() => {

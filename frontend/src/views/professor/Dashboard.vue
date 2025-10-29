@@ -4,7 +4,7 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">Welcome back, Prof. Smith!</h2>
+          <h2 class="text-2xl font-bold text-gray-900">Welcome back, Prof. {{ user.firstName }}!</h2>
           <p class="text-gray-600 mt-1">Here's what's happening in your classes today.</p>
         </div>
         <div class="text-right">
@@ -194,7 +194,21 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+
+const user = ref({
+  firstName: '',
+  lastName: '',
+  role: '',
+  emailAddress: ''
+})
+
+onMounted(() => {
+  const storedUser = localStorage.getItem('user')
+  if (storedUser) {
+    user.value = JSON.parse(storedUser)
+  }
+})
 
 const currentDate = computed(() => {
   return new Date().toLocaleDateString('en-US', {

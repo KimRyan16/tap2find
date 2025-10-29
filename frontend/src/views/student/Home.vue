@@ -4,7 +4,7 @@
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="text-center">
-          <h1 class="text-4xl font-bold mb-4">Welcome back, John! 👋</h1>
+          <h1 class="text-4xl font-bold mb-4">Welcome back, {{ user.firstName }}! 👋</h1>
           <p class="text-xl text-blue-100 mb-8">Ready to continue your learning journey?</p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
@@ -242,8 +242,25 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
+// 🧩 Reactive user state
+const user = ref({
+  firstName: '',
+  lastName: '',
+  role: '',
+  emailAddress: ''
+})
+
+// Load user data from localStorage
+onMounted(() => {
+  const storedUser = localStorage.getItem('user')
+  if (storedUser) {
+    user.value = JSON.parse(storedUser)
+  }
+})
+
+// 🗓️ Display current date
 const currentDate = computed(() => {
   return new Date().toLocaleDateString('en-US', {
     weekday: 'long',

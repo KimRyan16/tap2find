@@ -57,12 +57,12 @@
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span class="text-white text-sm font-medium">A</span>
+                <span class="text-white text-sm font-medium">{{ userInitials }}</span>
               </div>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-gray-700">Admin User</p>
-              <p class="text-xs text-gray-500">admin@tap2find.com</p>
+              <p class="text-sm font-medium text-gray-700">{{ user.firstName }} {{ user.lastName }}</p>
+              <p class="text-xs text-gray-500">{{ user.emailAddress }}</p>
             </div>
           </div>
         </div>
@@ -175,11 +175,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const mobileMenuOpen = ref(false)
+
+const user = ref({
+  firstName: '',
+  lastName: '',
+  role: '',
+  emailAddress: ''
+})
 
 const pageTitle = computed(() => {
   switch (route.path) {
@@ -187,6 +194,19 @@ const pageTitle = computed(() => {
       return 'Dashboard'
     default:
       return 'Admin Panel'
+  }
+})
+
+const userInitials = computed(() => {
+  const first = user.value.firstName?.charAt(0) || ''
+  const last = user.value.lastName?.charAt(0) || ''
+  return (first + last).toUpperCase()
+})
+
+onMounted(() => {
+   const storedUser = localStorage.getItem('user')
+  if (storedUser) {
+    user.value = JSON.parse(storedUser)
   }
 })
 </script>
