@@ -17,4 +17,5 @@ Oct. 27 Monday 10:25 ->
 
 Oct. 29 15:52 ->
 i: Modify the database configuration
+i: Update controller
 
