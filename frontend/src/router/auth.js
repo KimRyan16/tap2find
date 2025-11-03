@@ -43,13 +43,13 @@ const authRoutes = [
   {
     path: '/:random/verify-email',
     component: AuthLayout,
-    children: [
-      {
-        path: '',
-        name: 'verify-email',
-        component: VerifyEmail,
-      },
-    ],
+    // children: [
+    //   {
+    //     path: '',
+    //     name: 'verify-email',
+    //     component: VerifyEmail,
+    //   },
+    // ],
   },
   {
     path: '/reset-password',
