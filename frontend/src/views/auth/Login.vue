@@ -1,6 +1,7 @@
 <template>
   <div class="auth-page bg-white">
-    <div class="bg-white py-8 px-6">
+    <!-- Auth Card -->
+    <div class="bg-white py-8 px-6 shadow-lg rounded-lg">
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="flex items-center justify-center">
@@ -94,7 +95,7 @@
 
         <!-- Remember Me & Forgot Password -->
         <div class="flex items-center justify-between">
-          <div class="flex items-center">
+          <!-- <div class="flex items-center">
             <input
               id="remember"
               v-model="form.remember"
@@ -106,7 +107,7 @@
             <label for="remember" class="ml-2 block text-sm text-gray-700" :class="isLoading ? 'opacity-50' : ''">
               Remember me
             </label>
-          </div>
+          </div> -->
           <router-link 
             to="/forgot-password" 
             class="text-sm text-blue-600 hover:text-blue-500 transition-colors"
@@ -133,7 +134,7 @@
       </form>
 
       <!-- Divider -->
-      <div class="mt-6">
+      <!-- <div class="mt-6">
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300" />
@@ -142,10 +143,10 @@
             <span class="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Social Login -->
-      <div class="mt-6">
+      <!-- <div class="mt-6">
         <button 
           :disabled="isLoading"
           class="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-xl bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
@@ -155,7 +156,7 @@
           <Mail class="w-4 h-4 mr-2" />
           Gmail
         </button>
-      </div>
+      </div> -->
 
       <!-- Sign Up Link -->
       <div class="mt-6 text-center">
