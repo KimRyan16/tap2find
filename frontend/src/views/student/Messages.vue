@@ -210,7 +210,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import StudentTopNav from '@/components/StudentTopNav.vue'
+import api from "@/utils/api"
 
+const messages = ref([])
 const activeTab = ref('all')
 const searchQuery = ref('')
 const showMenu = ref(false)
@@ -285,8 +287,69 @@ const handleClickOutside = (event) => {
   }
 }
 
+const fetchStudentInquiries = async () => {
+  try {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    if (!userData) {
+      console.error("⚠️ No logged-in user found.");
+      return;
+    }
+
+    const studentId = userData._id || userData.id || userData.userId;
+    if (!studentId) {
+      console.error("❌ studentId missing:", userData);
+      return;
+    }
+
+    console.log("📤 Fetching inquiries for studentId:", studentId);
+
+    const res = await api.get(`/inquiries/student/${studentId}`);
+
+    if (res.data.success) {
+      const fetchedInquiries = res.data.inquiries.map((inquiry) => {
+        const professor = inquiry.professor || {};
+        const fullName = professor.name || "Unknown Professor";
+        const initials = fullName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+
+        return {
+          id: inquiry._id,
+          name: fullName,
+          initials,
+          avatarBg: "bg-[#102A71]",
+          status: professor.status || "not-available",
+          preview: inquiry.message,
+          time: new Date(inquiry.createdAt).toLocaleString(),
+          unread: inquiry.status === "pending",
+          conversations: [
+            {
+              id: 1,
+              sender: "student",
+              message: inquiry.message,
+              time: new Date(inquiry.createdAt).toLocaleString(),
+            },
+          ],
+          professorDetails: professor, // 👈 keep full professor info for modal or profile use
+        };
+      });
+
+      messages.value = fetchedInquiries;
+      console.log("✅ Loaded inquiries with professor details:", fetchedInquiries);
+    } else {
+      console.error("❌ Failed to load inquiries:", res.data.message);
+    }
+  } catch (error) {
+    console.error("🚨 Error fetching inquiries:", error);
+  }
+};
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  fetchStudentInquiries()
 })
 
 onUnmounted(() => {
@@ -297,83 +360,6 @@ onUnmounted(() => {
 const unreadMessages = computed(() => {
   return messages.value.filter(message => message.unread)
 })
-
-const messages = ref([
-  {
-    id: 1,
-    name: 'Prof. Pauline Alvarez',
-    initials: 'PA',
-    preview: 'Regarding your project submission...',
-    time: '2h ago',
-    unread: true,
-    status: 'available',
-    avatarBg: 'bg-gradient-to-br from-purple-300 to-purple-500',
-    conversations: [
-      { id: 1, sender: 'professor', message: 'Hello! I received your project submission. Let\'s discuss it.', time: '2h ago' },
-      { id: 2, sender: 'student', message: 'Thank you professor! I\'m excited to hear your feedback.', time: '1h ago' },
-      { id: 3, sender: 'professor', message: 'Your work shows great improvement. Let\'s schedule a meeting to discuss the details.', time: '30min ago' }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Dr. Jane Smith',
-    initials: 'JS',
-    preview: 'Thank you for your inquiry...',
-    time: '5h ago',
-    unread: false,
-    status: 'busy',
-    avatarBg: 'bg-gradient-to-br from-green-300 to-green-500',
-    conversations: [
-      { id: 1, sender: 'student', message: 'Hi Dr. Smith, I have a question about the assignment.', time: '5h ago' },
-      { id: 2, sender: 'professor', message: 'Of course! I\'m here to help. What\'s your question?', time: '4h ago' },
-      { id: 3, sender: 'student', message: 'I\'m not sure about the requirements for the final project.', time: '3h ago' },
-      { id: 4, sender: 'professor', message: 'The requirements are clearly outlined in the syllabus. Let me know if you need clarification.', time: '2h ago' }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Prof. Robert Johnson',
-    initials: 'RJ',
-    preview: 'Office hours have changed...',
-    time: '1d ago',
-    unread: true,
-    status: 'not-available',
-    avatarBg: 'bg-gradient-to-br from-blue-300 to-blue-500',
-    conversations: [
-      { id: 1, sender: 'professor', message: 'Office hours have been changed to Tuesday 2-4 PM.', time: '1d ago' },
-      { id: 2, sender: 'student', message: 'Got it! Thank you for the update.', time: '20h ago' }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Dr. Maria Garcia',
-    initials: 'MG',
-    preview: 'Assignment feedback ready...',
-    time: '3d ago',
-    unread: false,
-    status: 'available',
-    avatarBg: 'bg-gradient-to-br from-pink-300 to-pink-500',
-    conversations: [
-      { id: 1, sender: 'professor', message: 'Your assignment feedback is ready for review.', time: '3d ago' },
-      { id: 2, sender: 'student', message: 'Thank you! I\'ll check it right away.', time: '2d ago' }
-    ]
-  },
-  {
-    id: 5,
-    name: 'Prof. David Wilson',
-    initials: 'DW',
-    preview: 'Meeting scheduled for tomorrow...',
-    time: '1w ago',
-    unread: false,
-    status: 'busy',
-    avatarBg: 'bg-gradient-to-br from-indigo-300 to-indigo-500',
-    conversations: [
-      { id: 1, sender: 'student', message: 'Can we schedule a meeting to discuss my thesis?', time: '1w ago' },
-      { id: 2, sender: 'professor', message: 'Sure! How about tomorrow at 2 PM?', time: '1w ago' },
-      { id: 3, sender: 'student', message: 'Perfect! See you tomorrow.', time: '1w ago' }
-    ]
-  }
-])
 </script>
 
 <style scoped>

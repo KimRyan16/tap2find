@@ -14,7 +14,7 @@
             <div class="rounded-xl border border-gray-200 p-6 h-80" style="background: linear-gradient(180deg, #5e89ff, #102a71);">
               <h3 class="text-xl font-semibold text-white mb-4">Professor Availability Trend Chart</h3>
               <div class="h-64">
-                <ProfessorAvailabilityChart />
+                <ProfessorAvailabilityChart :data="chartData" />
               </div>
             </div>
           </div>
@@ -29,7 +29,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-500 mb-1">Available</p>
-                  <p class="text-2xl font-bold text-gray-900">12</p>
+                  <p class="text-2xl font-bold text-gray-900">{{ stats.available }}</p>
                 </div>
               </div>
             </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-500 mb-1">Busy</p>
-                  <p class="text-2xl font-bold text-gray-900">8</p>
+                  <p class="text-2xl font-bold text-gray-900">{{ stats.busy }}</p>
                 </div>
               </div>
             </div>
@@ -55,7 +55,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-500 mb-1">Not Available</p>
-                  <p class="text-2xl font-bold text-gray-900">5</p>
+                  <p class="text-2xl font-bold text-gray-900">{{ stats.notAvailable }}</p>
                 </div>
               </div>
             </div>
@@ -68,7 +68,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-500 mb-1">Inquiries Sent</p>
-                  <p class="text-2xl font-bold text-gray-900">3</p>
+                  <p class="text-2xl font-bold text-gray-900">{{ stats.inquiriesSentCount }}</p>
                 </div>
               </div>
             </div>
@@ -205,73 +205,80 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import StudentTopNav from '@/components/StudentTopNav.vue'
 import ProfessorAvailabilityChart from '@/components/ProfessorAvailabilityChart.vue'
+import api from '@/utils/api'
 
 // Reactive data
 const searchQuery = ref('')
 const statusFilter = ref('all')
 
+const stats = ref({ available: 0, busy: 0, notAvailable: 0, inquiriesSentCount: 0 })
+const inquiries = ref([])
+const chartData = ref([])
+
+const studentId = localStorage.getItem('id')
+
 // Sample inquiries data
-const inquiries = ref([
-  {
-    id: 1,
-    professor: {
-      name: 'Dr. Sarah Smith',
-      department: 'Mathematics',
-      initials: 'SS'
-    },
-    subject: 'Calculus Integration Help',
-    message: 'I need assistance with understanding integration techniques, particularly substitution and integration by parts. Could we schedule a meeting to go through some practice problems?',
-    dateRelative: '2 hours ago',
-    dateExact: 'January 15, 2024 at 2:30 PM',
-    status: 'Pending',
-    responseTime: null
-  },
-  {
-    id: 2,
-    professor: {
-      name: 'Dr. Michael Johnson',
-      department: 'Physics',
-      initials: 'MJ'
-    },
-    subject: 'Quantum Mechanics Lab',
-    message: 'I\'m having trouble with the wave function calculations in our quantum mechanics lab. The probability density seems off in my calculations.',
-    dateRelative: '1 day ago',
-    dateExact: 'January 14, 2024 at 10:15 AM',
-    status: 'Replied',
-    responseTime: '1h 18m'
-  },
-  {
-    id: 3,
-    professor: {
-      name: 'Dr. Emily Williams',
-      department: 'Chemistry',
-      initials: 'EW'
-    },
-    subject: 'Organic Chemistry Review',
-    message: 'Could you help me review the mechanisms for nucleophilic substitution reactions? I have an exam next week.',
-    dateRelative: '3 days ago',
-    dateExact: 'January 12, 2024 at 4:45 PM',
-    status: 'Closed',
-    responseTime: '2h 5m'
-  },
-  {
-    id: 4,
-    professor: {
-      name: 'Dr. Robert Brown',
-      department: 'Computer Science',
-      initials: 'RB'
-    },
-    subject: 'Algorithm Analysis',
-    message: 'I need help understanding time complexity analysis for recursive algorithms. Specifically, how to derive the Big O notation from recurrence relations.',
-    dateRelative: '5 days ago',
-    dateExact: 'January 10, 2024 at 11:20 AM',
-    status: 'Unread',
-    responseTime: null
-  }
-])
+// const inquiries = ref([
+//   {
+//     id: 1,
+//     professor: {
+//       name: 'Dr. Sarah Smith',
+//       department: 'Mathematics',
+//       initials: 'SS'
+//     },
+//     subject: 'Calculus Integration Help',
+//     message: 'I need assistance with understanding integration techniques, particularly substitution and integration by parts. Could we schedule a meeting to go through some practice problems?',
+//     dateRelative: '2 hours ago',
+//     dateExact: 'January 15, 2024 at 2:30 PM',
+//     status: 'Pending',
+//     responseTime: null
+//   },
+//   {
+//     id: 2,
+//     professor: {
+//       name: 'Dr. Michael Johnson',
+//       department: 'Physics',
+//       initials: 'MJ'
+//     },
+//     subject: 'Quantum Mechanics Lab',
+//     message: 'I\'m having trouble with the wave function calculations in our quantum mechanics lab. The probability density seems off in my calculations.',
+//     dateRelative: '1 day ago',
+//     dateExact: 'January 14, 2024 at 10:15 AM',
+//     status: 'Replied',
+//     responseTime: '1h 18m'
+//   },
+//   {
+//     id: 3,
+//     professor: {
+//       name: 'Dr. Emily Williams',
+//       department: 'Chemistry',
+//       initials: 'EW'
+//     },
+//     subject: 'Organic Chemistry Review',
+//     message: 'Could you help me review the mechanisms for nucleophilic substitution reactions? I have an exam next week.',
+//     dateRelative: '3 days ago',
+//     dateExact: 'January 12, 2024 at 4:45 PM',
+//     status: 'Closed',
+//     responseTime: '2h 5m'
+//   },
+//   {
+//     id: 4,
+//     professor: {
+//       name: 'Dr. Robert Brown',
+//       department: 'Computer Science',
+//       initials: 'RB'
+//     },
+//     subject: 'Algorithm Analysis',
+//     message: 'I need help understanding time complexity analysis for recursive algorithms. Specifically, how to derive the Big O notation from recurrence relations.',
+//     dateRelative: '5 days ago',
+//     dateExact: 'January 10, 2024 at 11:20 AM',
+//     status: 'Unread',
+//     responseTime: null
+//   }
+// ])
 
 // Computed properties
 const filteredInquiries = computed(() => {
@@ -314,6 +321,22 @@ const getStatusClasses = (status) => {
       return `${baseClasses} bg-gray-100 text-gray-800`
   }
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get(`/dashboard/student?studentId=${studentId}`)
+    if (data.success) {
+      stats.value.available = data.data.stats.available
+      stats.value.busy = data.data.stats.busy
+      stats.value.notAvailable = data.data.stats.notAvailable
+      stats.value.inquiriesSentCount = data.data.inquiriesSentCount
+      chartData.value = data.data.chartData
+      inquiries.value = data.data.recentInquiries
+    }
+  } catch (err) {
+    console.error('Error fetching dashboard data:', err)
+  }
+})
 </script>
 
 <style scoped>

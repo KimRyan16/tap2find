@@ -140,12 +140,17 @@
                 </div>
                 
                 <button
-                  @click="contactProfessor(professor)"
-                  class="bg-[#102A71] text-white py-2 px-4 rounded-lg hover:bg-[#102A71]/80 transition-colors text-sm flex items-center justify-center flex-shrink-0"
+                  @click="professor.available !== 'not available' && contactProfessor(professor)"
+                  :disabled="professor.available === 'not available'"
+                  class="py-2 px-4 rounded-lg text-sm flex items-center justify-center flex-shrink-0 transition-all"
+                  :class="professor.available === 'not available'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#102A71] text-white hover:bg-[#102A71]/80'"
                 >
                   <iconify-icon icon="lucide:send" class="mr-2 h-4 w-4" />
                   Send Inquiry
                 </button>
+
               </div>
             </div>
             </div>
@@ -366,6 +371,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import StudentTopNav from '@/components/StudentTopNav.vue'
+import api from '@/utils/api'
 
 // Reactive data
 const searchQuery = ref('')
@@ -401,46 +407,8 @@ const statusOptions = ref([
   { value: 'busy', label: 'Busy' }
 ])
 
-const professors = ref([
-  {
-    id: 1,
-    name: 'Prof. Pauline Alvarez',
-    email: 'paulina.alvarez@university.edu',
-    department: 'Computer Science',
-    office: 'IT Room 202',
-    yearLevel: 'first-year',
-    available: 'available'
-  },
-  {
-    id: 2,
-    name: 'Dr. Jane Doe',
-    email: 'jane.doe@university.edu',
-    department: 'Mathematics',
-    office: 'Building B, Room 205',
-    yearLevel: 'second-year',
-    available: 'available'
-  },
-  {
-    id: 3,
-    name: 'Dr. Robert Johnson',
-    email: 'robert.johnson@university.edu',
-    department: 'Physics',
-    office: 'Building C, Room 310',
-    yearLevel: 'third-year',
-    available: 'busy'
-  },
-  {
-    id: 4,
-    name: 'Dr. Emily Williams',
-    email: 'emily.williams@university.edu',
-    department: 'Chemistry',
-    office: 'Building D, Room 415',
-    yearLevel: 'fourth-year',
-    available: 'not-available'
-  }
-])
+const professors = ref([])
 
-// Computed
 const selectedYearLevelText = computed(() => {
   const option = yearLevelOptions.value.find(opt => opt.value === selectedYearLevel.value)
   return option ? option.label : 'All Year Levels'
@@ -516,12 +484,10 @@ const filterByStatus = (status) => {
 }
 
 const contactProfessor = (professor) => {
+  console.log("🧠 Selected professor:", professor)
   selectedProfessor.value = professor
   showInquiryModal.value = true
-  inquiryForm.value = {
-    subject: '',
-    message: ''
-  }
+  inquiryForm.value = { subject: '', message: '' }
 }
 
 const closeInquiryModal = () => {
@@ -529,18 +495,85 @@ const closeInquiryModal = () => {
   selectedProfessor.value = null
 }
 
-const submitInquiry = () => {
-  console.log('Sending inquiry to:', selectedProfessor.value.name)
-  console.log('Subject:', inquiryForm.value.subject)
-  console.log('Message:', inquiryForm.value.message)
-  // TODO: send the inquiry via API. After success:
-  closeInquiryModal()
-  showAnimationModal.value = true
-  // Fallback: auto-hide after 5s in case load doesn't fire
-  if (animationHideTimer) clearTimeout(animationHideTimer)
-  animationHideTimer = setTimeout(() => {
-    showAnimationModal.value = false
-  }, 5000)
+const submitInquiry = async () => {
+  try {
+    // 🧠 Get the selected professor and logged-in student
+    const professor = selectedProfessor.value
+    const userData = JSON.parse(localStorage.getItem("user"))
+
+    if (!userData) {
+      alert("No user logged in.")
+      return
+    }
+
+    if (!professor) {
+      alert("No professor selected.")
+      return
+    }
+
+    // 🧩 Handle all possible ID formats
+    const professorId =
+      professor.id ||
+      professor._id ||
+      professor._id?.$oid ||
+      null
+
+    const studentId = userData.id || userData._id || userData._id?.$oid || null
+
+    // 🧠 Debug log before sending
+    console.log("🎯 Selected Professor Object:", professor)
+    console.log("👩‍🎓 Logged-in Student:", userData)
+    console.log("📤 Inquiry Data (before validation):", {
+      professorId,
+      studentId,
+      subject: inquiryForm.value.subject,
+      message: inquiryForm.value.message
+    })
+
+    // 🛑 Validate all required fields
+    if (!professorId || !studentId) {
+      alert("Missing required professor or student ID.")
+      return
+    }
+
+    if (!inquiryForm.value.subject.trim() || !inquiryForm.value.message.trim()) {
+      alert("Please enter both subject and message.")
+      return
+    }
+
+    // 📨 Prepare inquiry data payload
+    const inquiryData = {
+      professorId,
+      studentId,
+      subject: inquiryForm.value.subject.trim(),
+      message: inquiryForm.value.message.trim(),
+    }
+
+    // 🚀 Send inquiry to backend
+    const response = await api.post("/inquiries/send", inquiryData)
+
+    if (response.data.success) {
+      console.log("✅ Inquiry sent successfully:", response.data)
+      alert("✅ Inquiry sent successfully!")
+
+      // Reset form & close modal
+      inquiryForm.value.subject = ''
+      inquiryForm.value.message = ''
+      showInquiryModal.value = false
+    } else {
+      console.error("❌ Inquiry failed:", response.data)
+      alert(response.data.message || "Failed to send inquiry.")
+    }
+
+  } catch (error) {
+    if (error.response) {
+      console.error("🚨 Server responded with error:", error.response.data)
+      alert(error.response.data.message || "Server error occurred.")
+    } else {
+      console.error("🚨 Unexpected error:", error)
+      alert("Unexpected error while sending inquiry.")
+    }
+  }
 }
 
 const closeAnimationModal = () => {
@@ -575,5 +608,18 @@ const getStatusIcon = (status) => {
   if (status === 'busy') return 'lucide:clock'
   return 'lucide:circle-x'
 }
+
+onMounted(async () => {
+  try {
+    const res = await api.get("/professors");
+
+    if (res.data.success) {
+      professors.value = res.data.professors;
+    }
+  } catch (err) {
+    console.error("Error loading professors:", err);
+  }
+});
+
 </script>
 

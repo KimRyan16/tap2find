@@ -10,6 +10,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./db.js";
 import authRoutes from "./routes/authRoutes.js"; 
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import professorRoutes from "./routes/professorRoutes.js";
+import inquiryRoutes from "./routes/inquiryRoutes.js";
 
 dotenv.config();
 
@@ -89,6 +92,9 @@ fs.readdir(partialsDir, (err, files) => {
 });
 
 app.use("/api/auth", authRoutes); 
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/professors", professorRoutes);
+app.use("/api/inquiries", inquiryRoutes);
 
 export default app;
 
