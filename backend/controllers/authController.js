@@ -261,4 +261,4 @@ export const resetPassword = async (req, res) => {
 };
 
 // (moved) updateProfile handler is now in studentprofileController.js
-};
+ 
