@@ -57,12 +57,8 @@
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold text-gray-900">Personal Information</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.personal = !collapsed.personal">
-                <iconify-icon :icon="collapsed.personal ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
             </div>
-            <Transition name="section">
-            <div v-show="!collapsed.personal" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-600 mb-1">First Name</label>
                 <input v-model="form.firstName" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" placeholder="First name" />
@@ -84,18 +80,13 @@
                 <input v-model="form.address" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" placeholder="City, Province" />
               </div>
             </div>
-            </Transition>
           </div>
 
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold text-gray-900">School Details</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.school = !collapsed.school">
-                <iconify-icon :icon="collapsed.school ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
             </div>
-            <Transition name="section">
-            <div v-show="!collapsed.school" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm text-gray-600 mb-1">ID Number</label>
                 <div class="flex">
@@ -158,18 +149,13 @@
                 </div>
               </div>
             </div>
-            </Transition>
           </div>
 
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold text-gray-900">Contact Information</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.contact = !collapsed.contact">
-                <iconify-icon :icon="collapsed.contact ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
             </div>
-            <Transition name="section">
-            <div v-show="!collapsed.contact" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-600 mb-1">Contact Number</label>
                 <div class="flex items-center gap-2">
@@ -185,18 +171,13 @@
                 </div>
               </div>
             </div>
-            </Transition>
           </div>
 
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold text-gray-900">RFID & Access</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.rfid = !collapsed.rfid">
-                <iconify-icon :icon="collapsed.rfid ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
             </div>
-            <Transition name="section">
-            <div v-show="!collapsed.rfid" class="flex flex-col gap-3">
+            <div class="flex flex-col gap-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-600">RFID / Card UID</span>
                 <span class="text-sm font-medium">{{ form.rfidUid }}</span>
@@ -205,53 +186,20 @@
                 <button class="px-3 py-2 text-white rounded-full text-sm bg-[#F5C400] disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" @click="onBindCard">Bind New Card</button>
               </div>
             </div>
-            </Transition>
           </div>
 
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold text-gray-900">Notification Preferences</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.notify = !collapsed.notify">
-                <iconify-icon :icon="collapsed.notify ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
             </div>
-            <Transition name="section">
-            <div v-show="!collapsed.notify" class="space-y-3 text-sm">
+            <div class="space-y-3 text-sm">
               <label class="flex items-center gap-2"><input type="checkbox" v-model="form.notify.professorReplies" class="h-4 w-4" :disabled="!isEditing" /> Professor Replies</label>
               <label class="flex items-center gap-2"><input type="checkbox" v-model="form.notify.inquiryUpdates" class="h-4 w-4" :disabled="!isEditing" /> Inquiry Updates</label>
               <label class="flex items-center gap-2"><input type="checkbox" v-model="form.notify.systemAlerts" class="h-4 w-4" :disabled="!isEditing" /> System Alerts</label>
             </div>
-            </Transition>
           </div>
 
-          <div class="bg-white shadow rounded-xl p-6">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-lg font-semibold text-gray-900">Account & Security</h3>
-              <button class="text-sm font-medium text-[#102A71]" @click="collapsed.account = !collapsed.account">
-                <iconify-icon :icon="collapsed.account ? 'mingcute:up-fill' : 'mingcute:down-fill'" class="text-xl" />
-              </button>
-            </div>
-            <Transition name="section">
-            <div v-show="!collapsed.account" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="md:col-span-2">
-                <label class="block text-sm text-gray-600 mb-1">Username</label>
-                <input v-model="form.username" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Current Password</label>
-                <input v-model="form.currentPassword" type="password" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">New Password</label>
-                <input v-model="form.newPassword" type="password" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Confirm Password</label>
-                <input v-model="form.confirmPassword" type="password" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!isEditing" />
-              </div>
-            </div>
-            </Transition>
-          </div>
+          
         </div>
         <div class="mt-4 text-sm text-gray-500">Last Login: {{ form.lastLogin }}</div>
       </div>

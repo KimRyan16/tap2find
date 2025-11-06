@@ -136,11 +136,29 @@
             View Profile
           </router-link>
           <div class="border-t border-gray-100"></div>
+          <router-link
+            to="/student/settings"
+            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            @click="showProfileMenu = false"
+          >
+            <iconify-icon icon="mingcute:settings-1-line" class="mr-2 h-4 w-4" />
+            Settings
+          </router-link>
+          <div class="border-t border-gray-100"></div>
+          <router-link
+            to="/student/support"
+            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            @click="showProfileMenu = false"
+          >
+            <iconify-icon icon="ix:about" class="mr-2 h-4 w-4" />
+            Support & About
+          </router-link>
+          <div class="border-t border-gray-100"></div>
           <button
             @click="showSignOutModal = true"
             class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
           >
-            <iconify-icon icon="lucide:log-out" class="mr-2 h-4 w-4" />
+            <iconify-icon icon="material-symbols:logout-rounded" class="mr-2 h-4 w-4" />
             Sign Out
           </button>
         </div>
