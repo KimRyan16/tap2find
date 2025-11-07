@@ -14,6 +14,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import professorRoutes from "./routes/professorRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js"
 
 dotenv.config();
 
@@ -97,6 +98,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/professors", professorRoutes);
 app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;
 

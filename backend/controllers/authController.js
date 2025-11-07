@@ -195,6 +195,7 @@ export const loginUser = async (req, res) => {
         coverUrl: user.coverUrl,
         lastLogin: when,
         lastLoginAgent: agent,
+        status: user.status || 'Unavailable',
       },
     });
   } catch (error) {

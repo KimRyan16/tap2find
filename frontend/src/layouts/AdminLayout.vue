@@ -24,31 +24,44 @@
             </router-link>
             
             <!-- Users -->
-            <a
-              href="#"
-              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            <router-link
+              to="/admin/users"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/users') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
             >
               <span class="mr-3 text-lg">👥</span>
-              Users
-            </a>
+              Manage Users
+            </router-link>
             
-            <!-- Analytics -->
-            <a
-              href="#"
-              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            <!-- Professor Management -->
+            <router-link
+              to="/admin/professors"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/professors') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
             >
               <span class="mr-3 text-lg">📈</span>
-              Analytics
-            </a>
+              Professor Management
+            </router-link>
             
-            <!-- Settings -->
-            <a
-              href="#"
-              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            <!-- Manage Student Concerns -->
+            <router-link
+              to="/admin/concerns"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/concerns') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
             >
-              <span class="mr-3 text-lg">⚙️</span>
-              Settings
-            </a>
+              <span class="mr-3 text-lg">📝</span>
+              Manage Student Concerns
+            </router-link>
+
+            <!-- Generate Reports -->
+            <router-link
+              to="/admin/reports"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            >
+              <span class="mr-3 text-lg">📄</span>
+              Generate Reports
+            </router-link>
           </nav>
         </div>
         
@@ -57,12 +70,12 @@
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span class="text-white text-sm font-medium">{{ userInitials }}</span>
+                <span class="text-white text-sm font-medium">A</span>
               </div>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-gray-700">{{ user.firstName }} {{ user.lastName }}</p>
-              <p class="text-xs text-gray-500">{{ user.emailAddress }}</p>
+              <p class="text-sm font-medium text-gray-700">Admin User</p>
+              <p class="text-xs text-gray-500">admin@tap2find.com</p>
             </div>
           </div>
         </div>
@@ -175,18 +188,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const mobileMenuOpen = ref(false)
-
-const user = ref({
-  firstName: '',
-  lastName: '',
-  role: '',
-  emailAddress: ''
-})
 
 const pageTitle = computed(() => {
   switch (route.path) {
@@ -194,19 +200,6 @@ const pageTitle = computed(() => {
       return 'Dashboard'
     default:
       return 'Admin Panel'
-  }
-})
-
-const userInitials = computed(() => {
-  const first = user.value.firstName?.charAt(0) || ''
-  const last = user.value.lastName?.charAt(0) || ''
-  return (first + last).toUpperCase()
-})
-
-onMounted(() => {
-   const storedUser = localStorage.getItem('user')
-  if (storedUser) {
-    user.value = JSON.parse(storedUser)
   }
 })
 </script>

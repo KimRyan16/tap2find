@@ -298,7 +298,7 @@
       <div class="mt-6 text-center">
         <p class="text-sm text-gray-600">
           Already have an account?
-          <router-link to="/login" class="font-medium text-blue-600 hover:text-blue-500" :class="isLoading ? 'pointer-events-none opacity-50' : ''">
+          <router-link to="/auth/login" class="font-medium text-blue-600 hover:text-blue-500" :class="isLoading ? 'pointer-events-none opacity-50' : ''">
             Sign in
           </router-link>
         </p>

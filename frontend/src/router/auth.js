@@ -8,7 +8,7 @@ import Unauthorized from '@/views/error/Unauthorized.vue'
 
 const authRoutes = [
   {
-    path: '/login',
+    path: '/auth/login',
     component: AuthLayout,
     children: [
       {
@@ -20,7 +20,7 @@ const authRoutes = [
     ],
   },
   {
-    path: '/register',
+    path: '/auth/register',
     component: AuthLayout,
     children: [
       {

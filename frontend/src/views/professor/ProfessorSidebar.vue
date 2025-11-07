@@ -34,16 +34,16 @@
 
         <!-- Set Availability Status -->
         <router-link
-          to="/professor/availability"
+          to="/professor/availability/status"
           class="group flex items-center px-4 py-3 text-base font-normal rounded-lg transition-colors leading-none"
           :class="[
-            $route.path === '/professor/availability'
+            $route.path.startsWith('/professor/availability')
               ? 'bg-white text-[#102A71]'
               : 'text-gray-300 hover:bg-[#cbd5f1]/20 hover:text-white'
           ]"
         >
           <iconify-icon 
-            :icon="$route.path === '/professor/availability' ? 'mdi:check-circle' : 'mdi:check-circle-outline'" 
+            :icon="$route.path.startsWith('/professor/availability') ? 'mdi:check-circle' : 'mdi:check-circle-outline'" 
             class="mr-2 text-xl" 
           />
           Set Status

@@ -5,12 +5,15 @@ import ManageStudentConcerns from '@/views/professor/ManageStudentConcerns.vue'
 import TeachingSchedule from '@/views/professor/TeachingSchedule.vue'
 import ProfessorProfile from '@/views/professor/ProfessorProfile.vue'
 import ProfessorNotifications from '@/views/professor/ProfessorNotifications.vue'
+import TapCardStep from '@/components/availability/TapCardStep.vue'
+import SetStatusStep from '@/components/availability/SetStatusStep.vue'
+import ActivityPanelStep from '@/components/availability/ActivityPanelStep.vue'
 
 const professorRoutes = [
   {
     path: '/professor',
     component: ProfessorLayout,
-    meta: { requiresAuth: true, role: 'professor' }, // ✅ added here
+    meta: { requiresAuth: true, role: 'professor' },
     children: [
       {
         path: '',
@@ -21,6 +24,27 @@ const professorRoutes = [
         path: 'availability',
         name: 'professor-availability',
         component: SetAvailabilityStatus,
+        children: [
+          {
+            path: '',
+            redirect: { name: 'professor-availability-tap' },
+          },
+          {
+            path: 'tap',
+            name: 'professor-availability-tap',
+            component: TapCardStep,
+          },
+          {
+            path: 'status',
+            name: 'professor-availability-status',
+            component: SetStatusStep,
+          },
+          {
+            path: 'activity',
+            name: 'professor-availability-activity',
+            component: ActivityPanelStep,
+          },
+        ],
       },
       {
         path: 'concerns',

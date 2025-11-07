@@ -163,7 +163,7 @@
         <p class="text-sm text-gray-600">
           Don't have an account?
           <router-link 
-            to="/register" 
+            to="/auth/register" 
             class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
             :class="isLoading ? 'pointer-events-none opacity-50' : ''"
           >
