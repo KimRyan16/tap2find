@@ -25,3 +25,4 @@ Nov. 7 Friday 10:56 PM -> Nov. 8 Saturday 12:33 AM
 i: fixed professor schedule adding
 i: student dashboard chart based on the professor's time schedule
 i: fixed logic for professor status when it's weekend
+i: esp32 backend endpoint prototype
