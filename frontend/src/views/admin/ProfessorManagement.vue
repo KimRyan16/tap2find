@@ -225,12 +225,13 @@
                 <input 
                   v-model="form.rfidId" 
                   type="text" 
-                  class="flex-1 border rounded px-3 py-2 text-sm font-mono"
+                  class="flex-1 border rounded px-3 py-2 text-sm font-mono bg-gray-50"
                   :class="detectedRfid ? 'bg-blue-50 border-blue-300' : ''"
                   placeholder="Tap RFID card or enter manually"
+                  :disabled="true"
                 />
                 <button 
-                  v-if="detectedRfid && !editTarget"
+                  v-if="detectedRfid && !editTarget && !form.rfidId"
                   type="button"
                   @click="useDetectedRfid"
                   class="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 whitespace-nowrap"
@@ -238,8 +239,14 @@
                   Use Detected
                 </button>
               </div>
-              <p v-if="detectedRfid" class="text-xs text-blue-600 mt-1">
+              <p v-if="detectedRfid && !editTarget" class="text-xs text-blue-600 mt-1">
                 RFID <strong>{{ detectedRfid }}</strong> detected and ready for assignment
+              </p>
+              <p v-else-if="form.rfidId" class="text-xs text-green-600 mt-1">
+                RFID assigned: {{ form.rfidId }}
+              </p>
+              <p v-else class="text-xs text-gray-500 mt-1">
+                Tap an RFID card or use the detected RFID to assign
               </p>
             </div>
             <div v-if="!editTarget">
@@ -434,7 +441,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import api from "@/utils/api"
 
 // Reactive data
@@ -455,7 +462,7 @@ const selectedProfessorForAssignment = ref('')
 
 // Connection status
 let pollingInterval = null
-const isConnected = ref(true) // HTTP polling is always "connected"
+const isConnected = ref(true)
 const lastPollTime = ref('')
 
 // Schedule management data
@@ -524,10 +531,26 @@ const professorsWithoutRfid = computed(() => {
   return professors.value.filter(prof => !prof.idNumber)
 })
 
+// Get all used RFID IDs to prevent duplicates
+const usedRfidIds = computed(() => {
+  return professors.value
+    .filter(prof => prof.idNumber)
+    .map(prof => prof.idNumber)
+})
+
 const isValidSchedule = computed(() => {
   return newSchedule.value.startTime < newSchedule.value.endTime && 
          newSchedule.value.subject.trim() !== '' &&
          newSchedule.value.room.trim() !== ''
+})
+
+// Watch for detected RFID changes
+watch(detectedRfid, (newRfid) => {
+  if (newRfid && usedRfidIds.value.includes(newRfid)) {
+    console.log('⚠️ RFID already in use, ignoring:', newRfid)
+    detectedRfid.value = '' // Clear if already used
+    return
+  }
 })
 
 // HTTP Polling for RFID Detection
@@ -540,7 +563,7 @@ const startPolling = () => {
   // Then set up interval
   pollingInterval = setInterval(() => {
     pollForNewRfids()
-  }, 3000) // Poll every 3 seconds
+  }, 3000)
 }
 
 const pollForNewRfids = async () => {
@@ -550,8 +573,8 @@ const pollForNewRfids = async () => {
       const recentRfids = response.data.data
       if (recentRfids.length > 0) {
         const latestRfid = recentRfids[0]
-        // Only process if it's a new RFID we haven't seen
-        if (latestRfid.uid !== detectedRfid.value) {
+        // Only process if it's a new RFID we haven't seen and not already used
+        if (latestRfid.uid !== detectedRfid.value && !usedRfidIds.value.includes(latestRfid.uid)) {
           console.log('📨 Polling found new RFID:', latestRfid.uid)
           handleUnknownRfid(latestRfid.uid)
         }
@@ -560,26 +583,6 @@ const pollForNewRfids = async () => {
     }
   } catch (error) {
     console.error('❌ Polling error:', error)
-  }
-}
-
-// Manual RFID test function
-const testRfidDetection = async () => {
-  try {
-    console.log('🧪 Testing RFID detection...')
-    
-    // Send a test RFID to the backend
-    const testRfid = 'TEST' + Date.now().toString().slice(-6)
-    const response = await api.post('/rfid/attendance/rfid-tap', {
-      uid: testRfid
-    })
-    
-    console.log('✅ Test RFID sent:', testRfid)
-    console.log('Backend response:', response.data)
-    
-    // The polling should pick this up automatically
-  } catch (error) {
-    console.error('❌ Test failed:', error)
   }
 }
 
@@ -598,6 +601,7 @@ const handleUnknownRfid = (rfid) => {
 
 const closeRfidNotification = () => {
   showRfidNotification.value = false
+  detectedRfid.value = ''
 }
 
 const assignDetectedRfid = () => {
@@ -620,11 +624,13 @@ const useInCurrentForm = () => {
 
 const useDetectedRfid = () => {
   form.value.rfidId = detectedRfid.value
+  detectedRfid.value = '' // Clear after using
 }
 
 const closeAssignModal = () => {
   showAssignModal.value = false
   selectedProfessorForAssignment.value = ''
+  detectedRfid.value = '' // Clear detected RFID when closing assign modal
 }
 
 const getProfessorName = (professorId) => {
@@ -729,6 +735,7 @@ const closeScheduleModal = () => {
 
 const closeModal = () => {
   showModal.value = false
+  detectedRfid.value = '' // Clear detected RFID when closing modal
 }
 
 const resetNewSchedule = () => {
@@ -743,6 +750,15 @@ const resetNewSchedule = () => {
 
 const submitProfessor = async () => {
   try {
+    // Check if RFID is already used (except when editing the same professor)
+    if (form.value.rfidId && usedRfidIds.value.includes(form.value.rfidId)) {
+      const currentProfessor = editTarget.value
+      if (!currentProfessor || currentProfessor.idNumber !== form.value.rfidId) {
+        alert('This RFID is already assigned to another professor. Please use a different RFID.')
+        return
+      }
+    }
+
     if (editTarget.value) {
       const payload = {
         firstName: form.value.firstName,
@@ -776,7 +792,7 @@ const submitProfessor = async () => {
   }
 }
 
-// Schedule management methods (keep your existing methods)
+// Schedule management methods
 const formatTimeDisplay = (hour) => {
   if (hour === 12) return '12:00 PM'
   if (hour > 12) return `${hour - 12}:00 PM`
@@ -974,7 +990,7 @@ const resetPassword = async (p) => {
 // Lifecycle
 onMounted(() => {
   fetchProfessors()
-  startPolling() // Use HTTP polling instead of WebSocket
+  startPolling()
 })
 
 onUnmounted(() => {
