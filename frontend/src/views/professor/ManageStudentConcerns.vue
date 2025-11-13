@@ -193,7 +193,7 @@
                   <button
                     @click="filters.date = 'all'; openDropdowns.date = false"
                     class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                    :class="{ 'bg-[#102A71] text-blue-600': filters.date === 'all' }"
+                    :class="{ 'bg-blue-50 text-blue-600': filters.date === 'all' }"
                   >
                     All Dates
                   </button>
