@@ -1,5 +1,6 @@
 import { getDB } from "../db.js";
 import { ObjectId } from "mongodb";
+import { createNotification, createStudentInquiryNotification, createInquiryResolvedNotification } from './notificationController.js';
 
 // 📨 Create and send inquiry (Student → Professor)
 export const createInquiry = async (req, res) => {
@@ -30,9 +31,32 @@ export const createInquiry = async (req, res) => {
       status: "pending"
     };
 
-    await db.collection("inquiries").insertOne(newInquiry);
+    const inquiryResult = await db.collection("inquiries").insertOne(newInquiry);
 
-    res.status(201).json({ success: true, message: "Inquiry sent successfully" });
+    // 🎯 CREATE NOTIFICATION AND SEND EMAIL TO PROFESSOR
+    try {
+      await createStudentInquiryNotification({
+        title: subject,
+        message: message,
+        studentId: studentId,
+        professorId: professorId,
+        studentName: `${student.firstName} ${student.lastName}`
+      });
+      console.log(`📢 Inquiry notification and email sent to Prof. ${professor.lastName}`);
+    } catch (notifError) {
+      console.error('❌ Error creating inquiry notification/email:', notifError);
+      // Don't fail the main request if notification/email fails
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      message: "Inquiry sent successfully",
+      data: {
+        inquiryId: inquiryResult.insertedId,
+        studentName: `${student.firstName} ${student.lastName}`,
+        professorName: `${professor.firstName} ${professor.lastName}`
+      }
+    });
   } catch (error) {
     console.error("❌ Error creating inquiry:", error);
     res.status(500).json({ success: false, message: "Server error" });

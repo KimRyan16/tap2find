@@ -293,11 +293,14 @@ const fetchNotifications = async () => {
     if (!storedUser) return console.error('❌ No user found in localStorage')
 
     const userData = JSON.parse(storedUser)
-    const studentId = userData._id || userData.id
+    const userId = userData._id || userData.id
+    const userRole = userData.role // Get user role
 
-    const { data } = await api.get(`/notification/get-notification?studentId=${studentId}`)
+    // Fetch notifications with both studentId and userRole
+    const { data } = await api.get(`/notification/get-notification?userId=${userId}&userRole=${userRole}`)
     if (data.success) {
       notifications.value = data.data
+      console.log(`✅ Loaded ${data.data.length} notifications for ${userRole}`)
     } else {
       console.warn('⚠️ Failed to fetch notifications:', data.message)
     }

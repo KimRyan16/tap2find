@@ -11,18 +11,22 @@
             <span class="absolute -inset-4 rounded-full ring-4 pulse-ring pulse-3" :class="ringInnerClass"></span>
             <!-- avatar circle -->
             <div class="w-44 h-44 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-              <img src="/sample.jpg" alt="Profile" class="w-full h-full object-contain" />
+              <img 
+                :src="professorData.avatarUrl" 
+                :alt="`Profile of ${professorData.firstName} ${professorData.lastName}`" 
+                class="w-full h-full object-cover" 
+              />
             </div>
           </div>
         </div>
 
         <!-- Greeting -->
         <div class="text-xl md:text-2xl font-semibold text-gray-900 mb-16">
-          Good day, Prof Alvarez! You’re <span :class="statusColorClass">{{ statusText }}</span>.
+          Good day, {{ professorData.title || 'Prof' }} {{ professorData.lastName }}! You're <span :class="statusColorClass">{{ statusText }}</span>.
         </div>
 
         <!-- Question -->
-        <div class="text-sm md:text-base text-gray-600 mb-3">Want to change you status?</div>
+        <div class="text-sm md:text-base text-gray-600 mb-3">Want to change your status?</div>
 
         <!-- Status tiles -->
         <div class="flex gap-3 mt-1">
@@ -67,19 +71,191 @@
       <!-- Footer info row pinned to bottom area -->
       <div class="w-full flex items-center justify-between text-[11px] text-gray-400 mt-auto pt-6">
         <div>Last Update : {{ lastUpdate }}</div>
-        <div>Source: RFID</div>
+        <div>Source: {{ lastUpdateSource }}</div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/utils/api'
 
+const router = useRouter()
 const status = ref('available')
-const set = (val) => {
+const professorData = ref({
+  firstName: '',
+  lastName: '',
+  title: 'Prof',
+  avatarUrl: '',
+  idNumber: '',
+  lastStatusChange: null,
+  status: 'available'
+})
+const lastUpdateSource = ref('Manual')
+const lastUpdate = ref('Loading...')
+const isLoading = ref(true)
+const professorId = ref(null)
+const professorUid = ref(null)
+
+// Get professor data from localStorage
+const getProfessorData = () => {
+  try {
+    // Get the professor object from localStorage
+    const professorData = localStorage.getItem('professor') || 
+                          localStorage.getItem('user') || 
+                          localStorage.getItem('currentUser')
+    
+    if (!professorData) {
+      console.error('No professor data found in localStorage')
+      alert('Please log in to access your profile.')
+      router.push('/auth/login')
+      return null
+    }
+
+    // Parse the professor data
+    const professor = JSON.parse(professorData)
+    console.log('Professor data from localStorage:', professor)
+
+    // Check if it's a professor and has an ID
+    if (!professor.id) {
+      console.error('Professor data does not contain an ID')
+      alert('Invalid user data. Please log in again.')
+      router.push('/auth/login')
+      return null
+    }
+
+    if (professor.role !== 'professor') {
+      console.error('User is not a professor, role:', professor.role)
+      alert('Access denied. Professor account required.')
+      router.push('/auth/login')
+      return null
+    }
+
+    professorId.value = professor.id
+    professorUid.value = professor.idNumber // Get the UID (RFID number)
+    console.log('Professor ID found:', professorId.value)
+    console.log('Professor UID found:', professorUid.value)
+    
+    return professor
+  } catch (error) {
+    console.error('Error parsing professor data from localStorage:', error)
+    alert('Error reading user data. Please log in again.')
+    router.push('/auth/login')
+    return null
+  }
+}
+
+// Fetch last update from rfid_logs
+const fetchLastUpdate = async () => {
+  try {
+    if (!professorUid.value) {
+      console.error('No professor UID available')
+      return
+    }
+
+    const response = await api.get(`/professors/last-update/${professorUid.value}`)
+    if (response.data.success) {
+      const lastUpdateData = response.data.data
+      
+      if (lastUpdateData) {
+        // Format the timestamp
+        lastUpdate.value = formatDateTime(new Date(lastUpdateData.timestamp))
+        
+        // Set source based on method
+        if (lastUpdateData.method === 'rfid_tap') {
+          lastUpdateSource.value = 'RFID'
+        } else if (lastUpdateData.method === 'manual') {
+          lastUpdateSource.value = 'Manual'
+        } else {
+          lastUpdateSource.value = lastUpdateData.method || 'Unknown'
+        }
+        
+        console.log('✅ Last update data loaded:', lastUpdateData)
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error fetching last update:', error)
+    // Set default values if fetch fails
+    lastUpdate.value = formatDateTime(new Date())
+    lastUpdateSource.value = 'Manual'
+  }
+}
+
+// Fetch professor data on component mount
+const fetchProfessorData = async () => {
+  try {
+    // Get professor ID from localStorage
+    const localProfessorData = getProfessorData()
+    if (!localProfessorData || !professorId.value) {
+      console.error('No professor ID available')
+      return
+    }
+    
+    const response = await api.get(`/professors/${professorId.value}`)
+    if (response.data.success) {
+      professorData.value = response.data.professor
+      status.value = professorData.value.status || 'available'
+      
+      // After loading professor data, fetch the last update info
+      await fetchLastUpdate()
+      
+      console.log('✅ Professor data loaded:', professorData.value)
+    }
+  } catch (error) {
+    console.error('❌ Error fetching professor data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const updateStatus = async (newStatus) => {
+  try {
+    const localProfessorData = getProfessorData()
+    if (!localProfessorData || !professorId.value) {
+      console.error('No professor ID available')
+      return
+    }
+
+    // Convert frontend status values to backend expected values
+    const backendStatus = newStatus === 'not_available' ? 'not-available' : newStatus
+
+    const response = await api.put(`/professors/${professorId.value}/status`, {
+      status: backendStatus,
+      method: 'manual'
+    })
+    
+    if (response.data.success) {
+      console.log(`✅ Status updated to ${newStatus}`)
+      
+      // Update local professor data with the response
+      if (response.data.data && response.data.data.professor) {
+        professorData.value.status = newStatus
+        professorData.value.lastStatusChange = response.data.data.timestamp
+        
+        // Update last update info immediately after successful update
+        lastUpdate.value = formatDateTime(new Date())
+        lastUpdateSource.value = 'Manual'
+      }
+    } else {
+      console.error('❌ Failed to update status:', response.data.message)
+      // Revert the status change on failure
+      status.value = professorData.value.status
+    }
+  } catch (error) {
+    console.error('❌ Error updating status:', error)
+    // Revert the status change on error
+    status.value = professorData.value.status
+  }
+}
+
+const set = async (val) => {
+  const previousStatus = status.value
   status.value = val
-  lastUpdate.value = formatDateTime(new Date())
+  
+  // Call the API to update the status in the backend
+  await updateStatus(val)
 }
 
 const statusLabel = computed(() => {
@@ -101,10 +277,12 @@ const statusText = computed(() => {
 const tileClass = (t) => {
   const base = 'bg-white'
   const inactive = 'border-gray-50'
+  
+  // Highlight the button that matches the current status
   if (status.value === t) {
-    if (t === 'available') return `${base} border-green-500`
-    if (t === 'busy') return `${base} border-amber-400`
-    return `${base} border-red-400`
+    if (t === 'available') return `${base} border-green-500 shadow-lg`
+    if (t === 'busy') return `${base} border-amber-400 shadow-lg`
+    if (t === 'not_available') return `${base} border-red-400 shadow-lg`
   }
   return `${base} ${inactive}`
 }
@@ -137,7 +315,6 @@ const formatDateTime = (d) => {
   const hh = String(hours).padStart(1, '0')
   return `${mm}/${dd}/${yy} | ${hh}:${minutes} ${ampm}`
 }
-const lastUpdate = ref(formatDateTime(new Date()))
 
 // Ring color classes based on status
 const ringOuterClass = computed(() => {
@@ -145,15 +322,22 @@ const ringOuterClass = computed(() => {
   if (status.value === 'busy') return 'ring-yellow-200'
   return 'ring-red-300'
 })
+
 const ringMiddleClass = computed(() => {
   if (status.value === 'available') return 'ring-green-100'
   if (status.value === 'busy') return 'ring-yellow-100'
   return 'ring-red-200'
 })
+
 const ringInnerClass = computed(() => {
   if (status.value === 'available') return 'ring-green-50'
   if (status.value === 'busy') return 'ring-yellow-50'
   return 'ring-red-100'
+})
+
+// Fetch professor data when component mounts
+onMounted(() => {
+  fetchProfessorData()
 })
 </script>
 

@@ -130,7 +130,10 @@ import inquiryRoutes from "./routes/inquiryRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js"
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+import userSettingsRoutes from "./routes/userSettingsRoutes.js";
 import rfidWebSocketServer from "./websocket.js"; // Add this import
+
+import { updateSessionActivity } from './middleware/updateSessionActivity.js';
 
 dotenv.config();
 
@@ -222,6 +225,9 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/rfid", attendanceRoutes);
+app.use("/api/user-settings", userSettingsRoutes);
+
+app.use('/api/user-settings', updateSessionActivity); 
 
 // Initialize WebSocket server
 rfidWebSocketServer.initialize(server);

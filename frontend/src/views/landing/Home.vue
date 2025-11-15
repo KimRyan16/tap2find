@@ -14,7 +14,7 @@
             </p>
             <div class="flex justify-center gap-4 flex-wrap">
               <router-link 
-                to="/register"
+                to="/auth/register"
                 class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 🚀 Get Started
@@ -61,7 +61,7 @@
               Join thousands of users who are already using Tap2Find to achieve their goals.
             </p>
             <router-link 
-              to="/register"
+              to="/auth/register"
               class="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
             >
               ➡️ Start Your Journey

@@ -290,10 +290,11 @@ const fetchNotifications = async () => {
     }
 
     const user = JSON.parse(storedUser)
-    const studentId = user._id || user.id
+    const userId = user._id || user.id
+    const userRole = user.role // Get user role
 
-    // Fetch notifications from backend
-    const { data } = await api.get(`/notification/get-notification?studentId=${studentId}`)
+    // Fetch notifications from backend with role parameter
+    const { data } = await api.get(`/notification/get-notification?userId=${userId}&userRole=${userRole}`)
 
     if (data.success) {
       // General notifications → seen by all
@@ -302,6 +303,7 @@ const fetchNotifications = async () => {
         ...n,
         isGeneral: !n.studentId || n.studentId === 'all', // add field for clarity
       }))
+      console.log(`✅ Loaded ${notifications.value.length} notifications for ${userRole}`)
     } else {
       console.warn('⚠️ Failed to fetch notifications:', data.message)
     }

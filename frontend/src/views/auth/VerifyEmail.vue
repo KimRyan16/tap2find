@@ -210,7 +210,7 @@ const verifyOTP = async () => {
 
     const response = await api.post('/auth/verify-otp', payload);
     alert(response.data.message || 'Email verified successfully!');
-    router.push('/login');
+    router.push('/auth/login');
 
   } catch (error) {
     console.error('Error verifying OTP:', error);
@@ -246,7 +246,7 @@ const resendOTP = async () => {
 
 const goToLogin = () => {
   if (isVerifying.value || isResending.value) return
-  router.push('/login')
+  router.push('/auth/login')
 }
 
 const goBack = () => {

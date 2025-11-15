@@ -183,7 +183,7 @@
 
                   <!-- ⏱ Response Time -->
                   <td class="px-6 py-4 text-sm">
-                    {{ inquiry.responseTime || '—' }}
+                    {{ formattedDate(inquiry.updatedAt) || '—' }}
                   </td>
                 </tr>
 
@@ -355,6 +355,24 @@ const filteredInquiries = computed(() => {
 
   return filtered
 })
+
+const formattedDate = (dateString) => {
+  if (!dateString) return null
+  
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return dateString
+  }
+}
 
 // ==============================
 // 🔹 Fetch Dashboard Data

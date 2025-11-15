@@ -213,35 +213,70 @@ const handleLogin = async () => {
   if (errors.value.email || errors.value.password) return
 
   isLoading.value = true
+  
+  console.log('🔄 Attempting login with:', {
+    email: form.value.email,
+    passwordLength: form.value.password.length
+  });
+
   try {
     const res = await api.post('/auth/login', {
       email: form.value.email,
       password: form.value.password
     })
 
+    console.log('✅ Login API response:', res.data);
+
     if (res.data.success) {
       const { token, user } = res.data
+      
+      console.log('🔐 Storing user data:', {
+        tokenLength: token.length,
+        user: user
+      });
+      
       localStorage.setItem('token', token)
       localStorage.setItem('role', user.role)
       localStorage.setItem('user', JSON.stringify(user))
 
+      // Set default authorization header for future requests
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      console.log('🎉 Login successful, redirecting to:', user.role);
+
       // Redirect based on role
       if (user.role === 'student') router.push('/student')
-      if (user.role === 'professor') router.push('/professor')
-      if (user.role === 'admin') router.push('/admin')
+      else if (user.role === 'professor') router.push('/professor')
+      else if (user.role === 'admin') router.push('/admin')
+      else {
+        console.warn('⚠️ Unknown role, redirecting to default');
+        router.push('/')
+      }
     }
 
   } catch (err) {
+    console.error('❌ Login error details:', {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message,
+      config: err.config
+    });
+    
     const msg = err.response?.data?.message || 'An error occurred.'
     
-    if (msg.includes('User not found'))
+    if (msg.includes('User not found') || err.response?.status === 404)
       errors.value.email = 'No account found with this email.'
-    else if (msg.includes('Incorrect password'))
+    else if (msg.includes('Incorrect password') || err.response?.status === 401)
       errors.value.password = 'Incorrect password.'
-    else if (msg.includes('not verified'))
+    else if (msg.includes('not verified') || err.response?.status === 403)
       errors.value.email = 'Email not verified. Please check your inbox.'
+    else if (err.response?.status === 400)
+      errors.value.email = 'Invalid request. Please check your inputs.'
+    else if (err.code === 'NETWORK_ERROR' || !navigator.onLine)
+      errors.value.email = 'Network error. Please check your connection.'
     else
-      errors.value.email = msg
+      errors.value.email = msg || 'Login failed. Please try again.'
+      
   } finally {
     isLoading.value = false
   }

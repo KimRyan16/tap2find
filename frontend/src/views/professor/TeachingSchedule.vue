@@ -261,10 +261,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
+import api from "@/utils/api"
 
 const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+const backendDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] // Backend expects capitalized
 
 const timeSlots = [
   '7:00AM-8:00AM',
@@ -286,27 +288,319 @@ const slotHeight = 64
 // Vertical inset (px) to create top and bottom spacing between schedule blocks
 const blockVInset = 2
 
-// Schedule data: dayIndex (0=Monday, 4=Friday), startSlot (0-10), duration (in slots)
-const scheduleData = [
-  { id: 1, dayIndex: 0, startSlot: 2, duration: 2, name: 'ITE 411', room: 'ITRM 101', location: '4F1' },
-  { id: 2, dayIndex: 0, startSlot: 5, duration: 2, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
+// Schedule data - now loaded from API
+const scheduleData = ref([])
+
+// Function to load professor's schedule from API
+const loadProfessorSchedule = async () => {
+  try {
+    // Direct one-liner to get professor ID
+    const professorId = JSON.parse(localStorage.getItem('user'))?.id;
+    
+    if (!professorId) {
+      console.error('No professor ID found');
+      return;
+    }
+
+    console.log('Loading schedule for professor:', professorId);
+
+    // Rest of your existing code...
+    const response = await api.get(`/admin/professors/${professorId}/schedule/manual`)
+    
+    if (response.data.success && response.data.schedule) {
+      scheduleData.value = response.data.schedule.map(schedule => ({
+        id: schedule._id || Date.now() + Math.random(),
+        dayIndex: backendDays.findIndex(day => day === schedule.day),
+        startSlot: schedule.startTime - 7,
+        duration: schedule.endTime - schedule.startTime,
+        name: schedule.subject,
+        room: schedule.room,
+        location: schedule.location || '',
+        color: getColorBySubject(schedule.subject)
+      })).filter(schedule => schedule.dayIndex !== -1)
+    } else {
+      scheduleData.value = []
+    }
+  } catch (error) {
+    console.error('Failed to load professor schedule:', error)
+    if (error.response?.status === 404) {
+      scheduleData.value = []
+    } else {
+      alert('Failed to load schedule: ' + (error.response?.data?.message || error.message))
+    }
+  }
+}
+
+// Helper function to assign colors based on subject
+const getColorBySubject = (subject) => {
+  const colorMap = {
+    'ITE': 'emerald',
+    'CS': 'sky',
+    'IS': 'amber',
+    'default': 'violet'
+  }
   
-  { id: 3, dayIndex: 1, startSlot: 1, duration: 2, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
-  { id: 4, dayIndex: 1, startSlot: 4, duration: 2, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
+  for (const [key, color] of Object.entries(colorMap)) {
+    if (subject && subject.toUpperCase().includes(key)) {
+      return color
+    }
+  }
+  return colorMap.default
+}
+
+// Function to convert frontend schedule to backend format
+const convertToBackendFormat = (schedules) => {
+  return schedules.map(schedule => ({
+    day: backendDays[schedule.dayIndex],
+    startTime: schedule.startSlot + 7, // Convert from slot index (0-10) to hour (7-18)
+    endTime: schedule.startSlot + 7 + schedule.duration,
+    subject: schedule.name,
+    room: schedule.room,
+    location: schedule.location || ''
+  }))
+}
+
+// Function to save ALL schedules to API (bulk save)
+const saveAllSchedules = async () => {
+  try {
+    const professorId = getProfessorId()
+    if (!professorId) {
+      throw new Error('No professor ID found')
+    }
+
+    // Convert all schedules to backend format
+    const backendScheduleData = convertToBackendFormat(scheduleData.value)
+
+    console.log('Saving schedules to backend:', backendScheduleData)
+
+    const response = await api.post(`/admin/professors/${professorId}/schedule/manual`, {
+      schedule: backendScheduleData
+    })
+
+    if (response.data.success) {
+      return response.data
+    } else {
+      throw new Error(response.data.message || 'Failed to save schedules')
+    }
+  } catch (error) {
+    console.error('Failed to save schedules:', error)
+    throw error
+  }
+}
+
+// Function to add a new schedule entry (local only, then save all)
+const addSchedule = async () => {
+  if (selectedDayIndex.value == null) {
+    alert('Please select a day')
+    return
+  }
   
-  { id: 5, dayIndex: 2, startSlot: 2, duration: 1, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
-  { id: 6, dayIndex: 2, startSlot: 4, duration: 2, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
+  const sh = parseHour(startTime.value)
+  const eh = parseHour(endTime.value)
+  if (sh == null || eh == null || eh <= sh) {
+    alert('Please select valid start and end times')
+    return
+  }
+
+  const startSlotVal = sh - 7
+  const durationVal = eh - sh
+
+  // Validate time range
+  if (sh < 7 || eh > 18) {
+    alert('Schedule time must be between 7:00 AM and 6:00 PM.')
+    return
+  }
+
+  // Validate duration (max 4 hours per session)
+  if (durationVal > 4) {
+    alert('Schedule duration cannot exceed 4 hours per session.')
+    return
+  }
+
+  // Check for overlapping schedules on the same day
+  const hasOverlap = scheduleData.value.some(course => {
+    if (course.dayIndex !== selectedDayIndex.value) return false
+    
+    return (
+      (startSlotVal >= course.startSlot && startSlotVal < course.startSlot + course.duration) ||
+      (startSlotVal + durationVal > course.startSlot && startSlotVal + durationVal <= course.startSlot + course.duration) ||
+      (startSlotVal <= course.startSlot && startSlotVal + durationVal >= course.startSlot + course.duration)
+    )
+  })
   
-  { id: 7, dayIndex: 3, startSlot: 2, duration: 1, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
-  { id: 8, dayIndex: 3, startSlot: 4, duration: 2, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
+  if (hasOverlap) {
+    alert('This time slot overlaps with an existing schedule on the same day!')
+    return
+  }
+
+  const newCourse = {
+    id: Date.now(), // Temporary ID
+    dayIndex: selectedDayIndex.value,
+    startSlot: startSlotVal,
+    duration: durationVal,
+    name: courseNameInput.value || ((yearLevelInput.value && sectionInput.value) ? `${yearLevelInput.value} ${sectionInput.value}` : 'Class'),
+    room: roomInput.value || 'TBD',
+    location: sectionInput.value || '',
+    color: colorInput.value,
+  }
+
+  // Add to local data first
+  scheduleData.value.push(newCourse)
   
-  { id: 9, dayIndex: 4, startSlot: 3, duration: 1, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
-  { id: 10, dayIndex: 4, startSlot: 5, duration: 1, name: 'ITE 211', room: 'ITRM 106', location: '2F1' },
-  { id: 11, dayIndex: 4, startSlot: 7, duration: 1, name: 'ITE 211', room: 'ITRM 106', location: '2F1' }
-]
+  // Sort schedules by day and time for better organization
+  scheduleData.value.sort((a, b) => {
+    if (a.dayIndex !== b.dayIndex) {
+      return a.dayIndex - b.dayIndex
+    }
+    return a.startSlot - b.startSlot
+  })
+
+  try {
+    // Save ALL schedules to backend
+    const result = await saveAllSchedules()
+    
+    // Update the temporary ID with actual backend ID if needed
+    // Note: Backend doesn't return individual IDs, so we keep our temporary ones
+    
+    showAddModal.value = false
+    resetForm()
+    
+    alert(`Schedule added successfully! ${result.scheduleCount} total entries saved.`)
+  } catch (error) {
+    // Remove the added schedule if save failed
+    const index = scheduleData.value.findIndex(course => course.id === newCourse.id)
+    if (index !== -1) {
+      scheduleData.value.splice(index, 1)
+    }
+    alert('Failed to save schedule: ' + (error.response?.data?.message || error.message))
+  }
+}
+
+// Function to update an existing schedule entry
+const updateSchedule = async () => {
+  if (!editingCourse.value) return
+
+  const sh = parseHour(startTime.value)
+  const eh = parseHour(endTime.value)
+  if (sh == null || eh == null || eh <= sh || selectedDayIndex.value == null) {
+    alert('Please fill all required fields correctly')
+    return
+  }
+  
+  const startSlotVal = sh - 7
+  const durationVal = eh - sh
+
+  // Validate time range
+  if (sh < 7 || eh > 18) {
+    alert('Schedule time must be between 7:00 AM and 6:00 PM.')
+    return
+  }
+
+  // Validate duration (max 4 hours per session)
+  if (durationVal > 4) {
+    alert('Schedule duration cannot exceed 4 hours per session.')
+    return
+  }
+
+  // Check for overlapping schedules (excluding the current course being edited)
+  const hasOverlap = scheduleData.value.some(course => {
+    if (course.id === editingCourse.value.id) return false // Skip the course being edited
+    if (course.dayIndex !== selectedDayIndex.value) return false
+    
+    return (
+      (startSlotVal >= course.startSlot && startSlotVal < course.startSlot + course.duration) ||
+      (startSlotVal + durationVal > course.startSlot && startSlotVal + durationVal <= course.startSlot + course.duration) ||
+      (startSlotVal <= course.startSlot && startSlotVal + durationVal >= course.startSlot + course.duration)
+    )
+  })
+  
+  if (hasOverlap) {
+    alert('This time slot overlaps with an existing schedule on the same day!')
+    return
+  }
+
+  // Update the course data locally
+  const originalCourse = { ...editingCourse.value }
+  
+  editingCourse.value.dayIndex = selectedDayIndex.value
+  editingCourse.value.startSlot = startSlotVal
+  editingCourse.value.duration = durationVal
+  editingCourse.value.name = courseNameInput.value || editingCourse.value.name
+  editingCourse.value.room = roomInput.value || editingCourse.value.room
+  editingCourse.value.location = sectionInput.value || editingCourse.value.location
+  editingCourse.value.color = colorInput.value || editingCourse.value.color
+
+  try {
+    // Save ALL schedules to backend
+    const result = await saveAllSchedules()
+    closeAddModal()
+    alert(`Schedule updated successfully! ${result.scheduleCount} total entries saved.`)
+  } catch (error) {
+    // Revert changes if save failed
+    Object.assign(editingCourse.value, originalCourse)
+    alert('Failed to update schedule: ' + (error.response?.data?.message || error.message))
+  }
+}
+
+// Function to delete a schedule entry
+const deleteSchedule = async () => {
+  if (!courseToDelete.value) return
+  
+  const courseId = courseToDelete.value.id
+  const originalSchedules = [...scheduleData.value]
+  
+  // Remove from local data first
+  const idx = scheduleData.value.findIndex(c => c.id === courseId)
+  if (idx !== -1) {
+    scheduleData.value.splice(idx, 1)
+  }
+
+  try {
+    // Save ALL schedules to backend
+    const result = await saveAllSchedules()
+    closeDeleteModal()
+    alert(`Schedule deleted successfully! ${result.scheduleCount} total entries saved.`)
+  } catch (error) {
+    // Revert changes if save failed
+    scheduleData.value = originalSchedules
+    alert('Failed to delete schedule: ' + (error.response?.data?.message || error.message))
+  }
+}
+
+// Modified saveSchedule function
+const saveSchedule = async () => {
+  if (isEditMode.value && editingCourse.value) {
+    await updateSchedule()
+  } else {
+    await addSchedule()
+  }
+}
+
+// Modified confirmDelete function
+const confirmDelete = async () => {
+  if (!courseToDelete.value) return closeDeleteModal()
+  await deleteSchedule()
+}
+
+// Helper function to reset form
+const resetForm = () => {
+  selectedDayIndex.value = null
+  startTime.value = ''
+  endTime.value = ''
+  courseNameInput.value = ''
+  roomInput.value = ''
+  sectionInput.value = ''
+  yearLevelInput.value = ''
+  colorInput.value = 'violet'
+}
+
+// Load schedule when component mounts
+onMounted(() => {
+  loadProfessorSchedule()
+})
 
 // Helpers
-const getCoursesForDay = (dayIndex) => scheduleData.filter(course => course.dayIndex === dayIndex)
+const getCoursesForDay = (dayIndex) => scheduleData.value.filter(course => course.dayIndex === dayIndex)
 
 const getTimeRange = (startSlot, duration) => {
   const start = timeSlots[startSlot]?.split('-')[0] || ''
@@ -403,6 +697,7 @@ const timeOptions = computed(() => {
 const openAddModal = () => {
   showAddModal.value = true
   isEditMode.value = false
+  resetForm()
 }
 
 const closeAddModal = () => {
@@ -410,6 +705,7 @@ const closeAddModal = () => {
   openDropdowns.value = { start: false, end: false, year: false, section: false }
   isEditMode.value = false
   editingCourse.value = null
+  resetForm()
 }
 
 const setDay = (idx) => {
@@ -430,50 +726,6 @@ const parseHour = (label) => {
   const [hStr] = label.split(':')
   const h = parseInt(hStr, 10)
   return Number.isFinite(h) ? h : null
-}
-
-const addSchedule = () => {
-  if (selectedDayIndex.value == null) return closeAddModal()
-  const sh = parseHour(startTime.value)
-  const eh = parseHour(endTime.value)
-  if (sh == null || eh == null || eh <= sh) return closeAddModal()
-
-  const startSlotVal = sh - 7
-  const durationVal = eh - sh
-
-  const newCourse = {
-    id: Date.now(),
-    dayIndex: selectedDayIndex.value,
-    startSlot: startSlotVal,
-    duration: durationVal,
-    name: courseNameInput.value || ((yearLevelInput.value && sectionInput.value) ? `${yearLevelInput.value} ${sectionInput.value}` : 'Class'),
-    room: roomInput.value || 'TBD',
-    location: sectionInput.value || '',
-    color: colorInput.value,
-  }
-  scheduleData.push(newCourse)
-   showAddModal.value = false
-}
-
-const saveSchedule = () => {
-  if (isEditMode.value && editingCourse.value) {
-    const sh = parseHour(startTime.value)
-    const eh = parseHour(endTime.value)
-    if (sh == null || eh == null || eh <= sh || selectedDayIndex.value == null) return closeAddModal()
-    const startSlotVal = sh - 7
-    const durationVal = eh - sh
-    // mutate the existing course
-    editingCourse.value.dayIndex = selectedDayIndex.value
-    editingCourse.value.startSlot = startSlotVal
-    editingCourse.value.duration = durationVal
-    editingCourse.value.name = courseNameInput.value || editingCourse.value.name
-    editingCourse.value.room = roomInput.value || editingCourse.value.room
-    editingCourse.value.location = sectionInput.value || editingCourse.value.location
-    editingCourse.value.color = colorInput.value || editingCourse.value.color
-    closeAddModal()
-    return
-  }
-  addSchedule()
 }
 
 const openEditModal = (course) => {
@@ -504,12 +756,5 @@ const openDeleteModal = (course) => {
 const closeDeleteModal = () => {
   showDeleteModal.value = false
   courseToDelete.value = null
-}
-
-const confirmDelete = () => {
-  if (!courseToDelete.value) return closeDeleteModal()
-  const idx = scheduleData.findIndex(c => c.id === courseToDelete.value.id)
-  if (idx !== -1) scheduleData.splice(idx, 1)
-  closeDeleteModal()
 }
 </script>
