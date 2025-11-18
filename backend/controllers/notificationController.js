@@ -19,25 +19,38 @@ export const getStudentNotifications = async (req, res) => {
     const db = getDB();
     const notifications = db.collection("notifications");
 
-    // Build the query based on user role
-    let query = {
-      $or: [
-        // General notifications - show to all roles
-        { isGeneral: true },
-        // User-specific notifications - show to the specific user
-        { userId: new ObjectId(userId) },
-      ]
-    };
+    // Build the OR conditions based on user role / targeting
+    const targetObjectId = new ObjectId(userId);
 
-    // Add role-specific notifications based on userRole
+    const orConditions = [
+      // General notifications - show to all roles
+      { isGeneral: true },
+    ];
+
     if (userRole === 'student') {
-      // Students see: general + student-targeted + personal notifications
-      query.$or.push({ targetRole: 'student' });
+      // Students: general + student-targeted + notifications addressed to this student
+      orConditions.push(
+        { targetRole: 'student' },
+        { studentId: targetObjectId },
+      );
     } else if (userRole === 'professor') {
-      // Professors see: general + professor-targeted + personal notifications
-      query.$or.push({ targetRole: 'professor' });
+      // Professors: general + professor-targeted + notifications addressed to this professor
+      orConditions.push(
+        { targetRole: 'professor' },
+        { professorId: targetObjectId },
+      );
+    } else {
+      // Fallback: use generic userId field if present
+      orConditions.push({ userId: targetObjectId });
     }
-    // Add other roles as needed (admin, staff, etc.)
+
+    // Only return unread notifications for the dropdown
+    const query = {
+      $and: [
+        { $or: orConditions },
+        { read: { $ne: true } },
+      ],
+    };
 
     const data = await notifications
       .find(query)
@@ -232,4 +245,53 @@ export const createInquiryResolvedNotification = async (inquiryData) => {
   await sendInquiryResolvedEmailToStudent(inquiryData, studentId);
   
   return notification;
+};
+
+export const markAllNotificationsRead = async (req, res) => {
+  try {
+    const { userId, userRole } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Missing userId" });
+    }
+
+    const db = getDB();
+    const notifications = db.collection("notifications");
+
+    const targetObjectId = new ObjectId(userId);
+
+    const orConditions = [
+      { isGeneral: true },
+    ];
+
+    if (userRole === 'student') {
+      orConditions.push(
+        { targetRole: 'student' },
+        { studentId: targetObjectId },
+      );
+    } else if (userRole === 'professor') {
+      orConditions.push(
+        { targetRole: 'professor' },
+        { professorId: targetObjectId },
+      );
+    } else {
+      orConditions.push({ userId: targetObjectId });
+    }
+
+    const query = {
+      $and: [
+        { $or: orConditions },
+        { read: { $ne: true } },
+      ],
+    };
+
+    const result = await notifications.updateMany(query, { $set: { read: true } });
+
+    console.log(`✅ Marked ${result.modifiedCount} notifications as read for ${userRole} user: ${userId}`);
+
+    res.json({ success: true, modifiedCount: result.modifiedCount });
+  } catch (error) {
+    console.error("❌ Error marking notifications as read:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };

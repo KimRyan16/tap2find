@@ -35,14 +35,34 @@
             <!-- Header -->
             <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
               <h3 class="text-xl font-bold text-gray-900">Notifications</h3>
-              <button @click="clearAll" class="text-sm text-gray-500 hover:text-gray-700">
-                Clear All
+              <button
+                @click="clearAllNotifications"
+                :disabled="notificationsLoading || clearingAll"
+                class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <span v-if="clearingAll" class="inline-flex items-center">
+                  <span class="w-3.5 h-3.5 border-2 border-gray-400/40 border-t-gray-600 rounded-full animate-spin"></span>
+                </span>
+                <span>{{ clearingAll ? 'Clearing...' : 'Clear All' }}</span>
               </button>
             </div>
 
             <!-- Notifications List -->
             <div class="max-h-96 overflow-y-auto px-6 py-2">
-              <template v-if="notifications.length > 0">
+              <!-- Skeleton while loading -->
+              <div v-if="notificationsLoading" class="space-y-4 animate-pulse">
+                <div v-for="n in 3" :key="n" class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
+                  <div class="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-3 w-40 bg-gray-200 rounded"></div>
+                    <div class="h-3 w-56 bg-gray-100 rounded"></div>
+                    <div class="h-2 w-24 bg-gray-100 rounded"></div>
+                  </div>
+                  <div class="w-5 h-5 bg-gray-100 rounded-full flex-shrink-0"></div>
+                </div>
+              </div>
+
+              <template v-else-if="notifications.length > 0">
                 <!-- TODAY -->
                 <div v-if="groupedNotifications.today.length">
                   <p class="text-sm text-gray-500 font-semibold mt-2 mb-1">Today</p>
@@ -191,11 +211,17 @@
       <div class="relative">
         <button
           @click="toggleProfileMenu"
-          class="flex items-center space-x-3 p-2  rounded-lg transition-colors"
+          class="flex items-center space-x-3 p-2 rounded-lg transition-colors"
         >
           <!-- Profile Picture -->
-          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center overflow-hidden">
-            <span class="text-sm font-semibold text-blue-600">{{ initials }}</span>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-blue-100">
+            <img
+              v-if="user.avatarUrl"
+              :src="user.avatarUrl"
+              alt="Profile"
+              class="w-full h-full object-cover"
+            />
+            <span v-else class="text-sm font-semibold text-blue-600">{{ initials }}</span>
           </div>
           
           <!-- Profile Info -->
@@ -275,6 +301,8 @@ const route = useRoute()
 const showProfileMenu = ref(false)
 const showNotifications = ref(false)
 const showSignOutModal = ref(false)
+const notificationsLoading = ref(false)
+const clearingAll = ref(false)
 
 const user = ref({
   firstName: '',
@@ -289,6 +317,7 @@ const { notifications, count, addNotification, markAsRead, clearAll } = useNotif
 // --- Fetch notifications from backend ---
 const fetchNotifications = async () => {
   try {
+    notificationsLoading.value = true
     const storedUser = localStorage.getItem('user')
     if (!storedUser) return console.error('❌ No user found in localStorage')
 
@@ -306,6 +335,8 @@ const fetchNotifications = async () => {
     }
   } catch (error) {
     console.error('❌ Error fetching notifications:', error)
+  } finally {
+    notificationsLoading.value = false
   }
 }
 
@@ -354,6 +385,28 @@ const toggleNotifications = async () => {
   if (showNotifications.value) await fetchNotifications()
 }
 
+const clearAllNotifications = async () => {
+  try {
+    if (clearingAll.value) return
+    clearingAll.value = true
+    const storedUser = localStorage.getItem('user')
+    if (!storedUser) return console.error('❌ No user found in localStorage')
+
+    const userData = JSON.parse(storedUser)
+    const userId = userData._id || userData.id
+    const userRole = userData.role
+
+    await api.post('/notification/mark-all-read', { userId, userRole })
+
+    // Clear local store so UI updates immediately
+    clearAll()
+  } catch (error) {
+    console.error('❌ Error clearing notifications:', error)
+  } finally {
+    clearingAll.value = false
+  }
+}
+
 const logout = () => {
   router.push('/auth/login')
 }
@@ -393,6 +446,9 @@ const updatePageInfo = () => {
   } else if (path.includes('/profile')) {
     currentPageTitle.value = 'Profile'
     currentPageDescription.value = 'Manage your account information'
+  } else if (path.includes('/settings')) {
+    currentPageTitle.value = 'Settings'
+    currentPageDescription.value = 'Manage your account preferences, notifications, and security'
   }
 }
 

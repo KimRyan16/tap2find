@@ -9,7 +9,27 @@
           <span>Back</span>
         </button>
       </div>
-      <div class="bg-white shadow rounded-xl p-6">
+      <!-- Skeleton Loading -->
+      <div v-if="isLoading" class="space-y-6 animate-pulse">
+        <div class="bg-white shadow rounded-xl p-6">
+          <div class="rounded-xl bg-gray-200 h-40 md:h-56"></div>
+          <div class="mt-4 flex flex-col items-center text-center">
+            <div class="-mt-12 w-32 h-32 rounded-full ring-4 ring-white bg-gray-200"></div>
+            <div class="mt-4 h-5 w-40 bg-gray-200 rounded mb-2"></div>
+            <div class="h-4 w-56 bg-gray-100 rounded mb-1"></div>
+            <div class="h-3 w-32 bg-gray-100 rounded"></div>
+          </div>
+        </div>
+        <div class="bg-white shadow rounded-xl p-6">
+          <div class="h-5 w-48 bg-gray-200 rounded mb-4"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="n in 4" :key="n" class="h-10 bg-gray-100 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div v-else class="bg-white shadow rounded-xl p-6">
         <div class="relative rounded-xl overflow-hidden h-40 md:h-56">
           <img v-if="form.coverUrl" :key="form.coverUrl" :src="form.coverUrl" alt="Cover" class="w-full h-full object-cover" />
           <div v-else class="w-full h-full bg-gradient-to-b from-indigo-400 to-indigo-900"></div>
@@ -45,16 +65,40 @@
           <div class="text-base text-gray-900 font-semibold ">{{ form.program }} | {{ form.yearLevel }} | {{ form.section }}</div>
           <div class="text-base text-gray-600 font-medium">{{ displayId }}</div>
           <div class="mt-4 flex items-center justify-center gap-3">
-            <button v-if="!isEditing" class="px-4 py-2 rounded-full bg-[#F5C400] text-white shadow-sm text-sm font-medium hover:opacity-90" @click="startEdit">Edit Profile</button>
+            <button
+              v-if="!isEditing"
+              class="px-4 py-2 rounded-full bg-[#F5C400] text-white shadow-sm text-sm font-medium hover:opacity-90"
+              @click="startEdit"
+            >
+              Edit Profile
+            </button>
             <template v-else>
-              <button class="px-4 py-2 rounded-full border border-gray-300 shadow-sm text-sm font-medium hover:bg-gray-50" @click="onReset">Reset</button>
-              <button class="px-4 py-2 rounded-full bg-[#102A71] text-white shadow-sm text-sm font-medium hover:opacity-90" @click="onSave">Save Changes</button>
+              <button
+                class="px-4 py-2 rounded-full border border-gray-300 shadow-sm text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                @click="onReset"
+                :disabled="isSaving || isResetting"
+              >
+                <span v-if="isResetting" class="inline-flex items-center">
+                  <span class="w-4 h-4 border-2 border-gray-400/40 border-t-gray-500 rounded-full animate-spin"></span>
+                </span>
+                <span>{{ isResetting ? 'Resetting...' : 'Reset' }}</span>
+              </button>
+              <button
+                class="px-4 py-2 rounded-full bg-[#102A71] text-white shadow-sm text-sm font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                @click="onSave"
+                :disabled="isSaving || isResetting"
+              >
+                <span v-if="isSaving" class="inline-flex items-center">
+                  <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                </span>
+                <span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
+              </button>
             </template>
           </div>
         </div>
       </div>
 
-      <div class="mt-6">
+      <div v-if="!isLoading" class="mt-6">
         <div class="space-y-6">
           <div class="bg-white shadow rounded-xl p-6">
             <div class="flex items-center justify-between mb-2">
@@ -258,6 +302,8 @@ const form = ref(JSON.parse(JSON.stringify(initialForm)))
 const snapshot = ref(JSON.parse(JSON.stringify(initialForm)))
 const isEditing = ref(false)
 const isSaving = ref(false)
+const isResetting = ref(false)
+const isLoading = ref(true)
 
 // Toast helper (top-center, smooth slide/fade, spinner + progress bar)
 const showToast = (message, type = 'success', duration = 2500) => {
@@ -398,11 +444,17 @@ const startEdit = () => {
 }
 
 const onReset = () => {
+  if (isResetting.value || isSaving.value) return
+  isResetting.value = true
   form.value = JSON.parse(JSON.stringify(snapshot.value))
   if (avatarInput.value) avatarInput.value.value = ''
   if (coverInput.value) coverInput.value.value = ''
   isEditing.value = false
   showToast('Changes discarded', 'success')
+  // small delay so the spinner is perceivable
+  setTimeout(() => {
+    isResetting.value = false
+  }, 300)
 }
 
 import api from '@/utils/api'
@@ -532,7 +584,10 @@ const goBack = () => {
 
 onMounted(() => {
   const storedUser = localStorage.getItem('user')
-  if (!storedUser) return
+  if (!storedUser) {
+    isLoading.value = false
+    return
+  }
   try {
     const u = JSON.parse(storedUser)
     if (u.firstName) form.value.firstName = u.firstName
@@ -598,6 +653,11 @@ onMounted(() => {
         }
       })
       .catch(() => {})
+      .finally(() => {
+        isLoading.value = false
+      })
+  } else {
+    isLoading.value = false
   }
 })
 </script>

@@ -15,18 +15,39 @@ export const getStudentDashboard = async (req, res) => {
       });
     }
 
-    // 1️⃣ Professor Status Statistics
-    const professorStats = await db.collection("users")
-      .aggregate([
-        { $match: { role: "professor" } },
-        { $group: { _id: "$status", count: { $sum: 1 } } },
-      ])
+    // 1️⃣ Professor Status Statistics (match Locate Professor logic)
+    const now = new Date();
+    const isWeekend = now.getDay() === 0 || now.getDay() === 6; // 0 = Sunday, 6 = Saturday
+
+    const professors = await db.collection("users")
+      .find({ role: "professor" })
+      .project({ status: 1, isVerified: 1 })
       .toArray();
 
+    const statsAccumulator = { available: 0, busy: 0, notAvailable: 0 };
+
+    professors.forEach((p) => {
+      let availabilityStatus = "not-available";
+
+      if (!isWeekend) {
+        if (p.status && p.isVerified !== false) {
+          availabilityStatus = p.status.toLowerCase();
+        } else {
+          availabilityStatus = "not-available";
+        }
+      } else {
+        availabilityStatus = "not-available";
+      }
+
+      if (availabilityStatus === "available") statsAccumulator.available += 1;
+      else if (availabilityStatus === "busy") statsAccumulator.busy += 1;
+      else statsAccumulator.notAvailable += 1;
+    });
+
     const stats = {
-      available: professorStats.find((s) => s._id === "Available")?.count || 0,
-      busy: professorStats.find((s) => s._id === "Busy")?.count || 0,
-      notAvailable: professorStats.find((s) => s._id === "Not Available")?.count || 0,
+      available: statsAccumulator.available,
+      busy: statsAccumulator.busy,
+      notAvailable: statsAccumulator.notAvailable,
     };
 
     // 2️⃣ Professor Availability Trend Chart

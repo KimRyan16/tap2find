@@ -10,6 +10,34 @@
       <h1 class="text-4xl font-semibold text-gray-900 ">Settings</h1>
       <p class="text-base text-gray-500 mb-6">Manage your account preferences, notifications, and security.</p>
 
+    <!-- Skeleton Loading -->
+    <div v-if="isLoading" class="space-y-6 animate-pulse">
+      <section class="bg-white shadow rounded-xl p-5">
+        <div class="h-5 w-40 bg-gray-200 rounded mb-4"></div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="h-10 bg-gray-100 rounded sm:col-span-2"></div>
+          <div class="h-10 bg-gray-100 rounded"></div>
+          <div class="h-10 bg-gray-100 rounded"></div>
+        </div>
+      </section>
+      <section class="bg-white shadow rounded-xl p-5">
+        <div class="h-5 w-48 bg-gray-200 rounded mb-4"></div>
+        <div class="h-10 bg-gray-100 rounded mb-3"></div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="h-16 bg-gray-100 rounded"></div>
+          <div class="h-16 bg-gray-100 rounded"></div>
+        </div>
+      </section>
+      <section class="bg-white shadow rounded-xl p-5">
+        <div class="h-5 w-52 bg-gray-200 rounded mb-4"></div>
+        <div class="h-10 bg-gray-100 rounded mb-2"></div>
+        <div class="h-10 bg-gray-100 rounded mb-2"></div>
+      </section>
+    </div>
+
+    <!-- Main Content -->
+    <div v-else>
+
     <!-- Change Password -->
     <section class="bg-white shadow rounded-xl p-5 mb-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
@@ -28,9 +56,17 @@
         </div>
       </div>
       <div class="mt-4 flex justify-end">
-        <button @click="savePassword" class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90">Update Password</button>
+        <button
+          @click="savePassword"
+          :disabled="savingPassword"
+          class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span v-if="savingPassword" class="inline-flex items-center">
+            <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+          </span>
+          <span>{{ savingPassword ? 'Updating...' : 'Update Password' }}</span>
+        </button>
       </div>
-      <p v-if="passwordMessage" class="text-sm mt-2" :class="passwordOk ? 'text-green-600' : 'text-red-600'">{{ passwordMessage }}</p>
     </section>
 
     <!-- Notifications -->
@@ -65,7 +101,16 @@
         </div>
       </div>
       <div class="mt-4 flex justify-end">
-        <button @click="saveNotifications" class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90">Save Preferences</button>
+        <button
+          @click="saveNotifications"
+          :disabled="savingNotifications"
+          class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span v-if="savingNotifications" class="inline-flex items-center">
+            <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+          </span>
+          <span>{{ savingNotifications ? 'Saving...' : 'Save Preferences' }}</span>
+        </button>
       </div>
     </section>
 
@@ -84,16 +129,32 @@
                 <div class="text-gray-900">{{ s.device }} — {{ s.location }}</div>
                 <div class="text-xs text-gray-500">{{ s.lastActive }}</div>
               </div>
-              <button class="text-xs text-red-600 hover:underline" @click="signOutSession(i)">Sign out</button>
+              <button
+                class="text-xs text-red-600 hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
+                @click="signOutSession(i)"
+                :disabled="signingOutIndex === i || signingOutAll"
+              >
+                {{ signingOutIndex === i ? 'Signing out...' : 'Sign out' }}
+              </button>
             </li>
           </ul>
         </div>
 
         <div class="flex justify-end">
-          <button class="px-4 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-200 mr-2" @click="signOutAll">Sign out of all devices</button>
+          <button
+            class="px-4 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-200 mr-2 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="signOutAll"
+            :disabled="signingOutAll"
+          >
+            <span v-if="signingOutAll" class="inline-flex items-center">
+              <span class="w-4 h-4 border-2 border-red-400/40 border-t-red-500 rounded-full animate-spin"></span>
+            </span>
+            <span>{{ signingOutAll ? 'Signing out...' : 'Sign out of all devices' }}</span>
+          </button>
         </div>
       </div>
     </section>
+    </div>
     </div>
   </div>
 </template>
@@ -107,30 +168,118 @@ const goBack = () => {
   router.back()
 }
 
+// Toast helper (top-right, smooth slide/fade, spinner + progress bar)
+const showToast = (message, type = 'success', duration = 2200) => {
+  let container = document.getElementById('t2f-toast-container')
+  if (!container) {
+    container = document.createElement('div')
+    container.id = 't2f-toast-container'
+    container.style.position = 'fixed'
+    container.style.top = '16px'
+    container.style.right = '16px'
+    container.style.zIndex = '9999'
+    container.style.display = 'flex'
+    container.style.flexDirection = 'column'
+    container.style.gap = '8px'
+    document.body.appendChild(container)
+  }
+
+  const toast = document.createElement('div')
+  toast.style.minWidth = '260px'
+  toast.style.maxWidth = '420px'
+  toast.style.background = type === 'success' ? '#ECFDF5' : '#FEF2F2'
+  toast.style.border = `1px solid ${type === 'success' ? '#34D399' : '#F87171'}`
+  toast.style.color = '#111827'
+  toast.style.borderRadius = '9999px'
+  toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)'
+  toast.style.overflow = 'hidden'
+  toast.style.opacity = '0'
+  toast.style.transform = 'translateY(-12px)'
+  toast.style.transition = 'opacity 220ms ease, transform 220ms ease'
+
+  const row = document.createElement('div')
+  row.style.display = 'flex'
+  row.style.alignItems = 'center'
+  row.style.gap = '8px'
+  row.style.padding = '8px 14px'
+
+  const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  spinner.setAttribute('viewBox', '0 0 24 24')
+  spinner.setAttribute('width', '16')
+  spinner.setAttribute('height', '16')
+  spinner.innerHTML = `
+    <circle cx="12" cy="12" r="9" stroke="${type === 'success' ? '#10B981' : '#EF4444'}" stroke-width="2.5" fill="none" opacity="0.25"/>
+    <path d="M21 12a9 9 0 0 0-9-9" stroke="${type === 'success' ? '#10B981' : '#EF4444'}" stroke-width="2.5" fill="none" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.9s" repeatCount="indefinite" />
+    </path>
+  `
+
+  const text = document.createElement('div')
+  text.textContent = message
+  text.style.fontSize = '14px'
+  text.style.fontWeight = '600'
+
+  row.appendChild(spinner)
+  row.appendChild(text)
+
+  const barWrap = document.createElement('div')
+  barWrap.style.height = '3px'
+  barWrap.style.background = 'transparent'
+  barWrap.style.width = '100%'
+  const bar = document.createElement('div')
+  bar.style.height = '100%'
+  bar.style.width = '100%'
+  bar.style.background = type === 'success' ? '#6EE7B7' : '#FCA5A5'
+  bar.style.transition = `width ${duration}ms linear`
+  barWrap.appendChild(bar)
+
+  toast.appendChild(row)
+  toast.appendChild(barWrap)
+  container.appendChild(toast)
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1'
+    toast.style.transform = 'translateY(0)'
+    requestAnimationFrame(() => (bar.style.width = '0%'))
+  })
+
+  setTimeout(() => {
+    toast.style.opacity = '0'
+    toast.style.transform = 'translateY(-8px)'
+    setTimeout(() => {
+      toast.remove()
+      if (!container.childElementCount) container.remove()
+    }, 240)
+  }, duration)
+}
+
 // Change Password
 const password = ref({ current: '', new: '', confirm: '' })
 const passwordMessage = ref('')
 const passwordOk = ref(false)
+const savingPassword = ref(false)
 const savePassword = async () => {
+  if (savingPassword.value) return
   passwordOk.value = false
   passwordMessage.value = ''
   if (!password.value.current || !password.value.new || !password.value.confirm) {
-    passwordMessage.value = 'Please complete all fields.'
+    showToast('Please complete all password fields.', 'error')
     return
   }
   if (password.value.new !== password.value.confirm) {
-    passwordMessage.value = 'New passwords do not match.'
+    showToast('New password and Confirm password do not match.', 'error')
     return
   }
   if (password.value.new.length < 8) {
-    passwordMessage.value = 'New password must be at least 8 characters.'
+    showToast('New password must be at least 8 characters.', 'error')
     return
   }
-  const token = localStorage.getItem('t2f_token')
+  const token = localStorage.getItem('token') || localStorage.getItem('t2f_token')
   if (!token) {
-    passwordMessage.value = 'Not authenticated. Please log in again.'
+    showToast('Not authenticated. Please log in again.', 'error')
     return
   }
+  savingPassword.value = true
   try {
     const res = await fetch('http://localhost:3000/api/auth/change-password', {
       method: 'PUT',
@@ -149,26 +298,45 @@ const savePassword = async () => {
       throw new Error(data.message || 'Failed to update password')
     }
     passwordOk.value = true
-    passwordMessage.value = 'Password updated successfully.'
+    passwordMessage.value = ''
     password.value = { current: '', new: '', confirm: '' }
+    showToast('Password updated successfully', 'success')
   } catch (err) {
     passwordOk.value = false
-    passwordMessage.value = err.message
+    if (err?.message) {
+      showToast(err.message, 'error')
+    } else {
+      showToast('Failed to update password', 'error')
+    }
+  } finally {
+    savingPassword.value = false
   }
 }
 
 // Notifications
 const notify = ref({ enabled: true, channels: { email: true, sms: false } })
-const saveNotifications = () => {
-  // Placeholder to persist
-  console.log('Saved notification prefs', notify.value)
+const savingNotifications = ref(false)
+const saveNotifications = async () => {
+  if (savingNotifications.value) return
+  savingNotifications.value = true
+  try {
+    // Placeholder to persist — extend with real API as needed
+    console.log('Saved notification prefs', notify.value)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    showToast('Notification preferences saved', 'success')
+  } finally {
+    savingNotifications.value = false
+  }
 }
 
 // Login & Security
 const sessions = ref([])
+const isLoading = ref(true)
+const signingOutIndex = ref(null)
+const signingOutAll = ref(false)
 
 function authHeaders() {
-  const token = localStorage.getItem('t2f_token')
+  const token = localStorage.getItem('token') || localStorage.getItem('t2f_token')
   const headers = token ? { Authorization: `Bearer ${token}` } : {}
   const sid = localStorage.getItem('t2f_session_id')
   if (sid) headers['x-session-id'] = sid
@@ -198,13 +366,16 @@ async function loadSessions() {
         }
       }
     }
-  } catch {}
+  } catch {} finally {
+    isLoading.value = false
+  }
 }
 
 async function signOutSession(index) {
   const sess = sessions.value[index]
   if (!sess?._id) return
   try {
+    signingOutIndex.value = index
     const res = await fetch(`http://localhost:3000/api/auth/sessions/${sess._id}`, {
       method: 'DELETE',
       headers: { ...authHeaders() }
@@ -222,13 +393,18 @@ async function signOutSession(index) {
       } catch {}
       router.push('/login')
     }
+    showToast('Session signed out', 'success')
   } catch (e) {
     alert(e.message)
+  } finally {
+    signingOutIndex.value = null
   }
 }
 
 async function signOutAll() {
   try {
+    if (signingOutAll.value) return
+    signingOutAll.value = true
     const res = await fetch('http://localhost:3000/api/auth/sessions', {
       method: 'DELETE',
       headers: { ...authHeaders() }
@@ -242,8 +418,11 @@ async function signOutAll() {
       localStorage.removeItem('t2f_user')
     } catch {}
     router.push('/login')
+    showToast('Signed out of all devices', 'success')
   } catch (e) {
     alert(e.message)
+  } finally {
+    signingOutAll.value = false
   }
 }
 

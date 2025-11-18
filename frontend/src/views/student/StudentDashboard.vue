@@ -4,7 +4,94 @@
     <StudentTopNav />
 
     <div class="px-4 md:px-6 py-4 min-h-0">
-      <div class="space-y-6">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="space-y-6 animate-pulse">
+        <!-- Skeleton: Top Section (Chart + Status Cards) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Chart Skeleton -->
+          <div class="lg:col-span-2">
+            <div class="rounded-xl border border-gray-200 p-8 h-96 bg-gradient-to-b from-slate-200 to-slate-100">
+              <div class="flex items-center justify-between mb-6">
+                <div class="h-6 w-48 bg-white/40 rounded"></div>
+                <div class="flex items-center gap-4">
+                  <div class="h-4 w-16 bg-white/30 rounded"></div>
+                  <div class="h-4 w-16 bg-white/30 rounded"></div>
+                  <div class="h-4 w-16 bg-white/30 rounded"></div>
+                </div>
+              </div>
+              <div class="h-72 flex items-end gap-2">
+                <div v-for="n in 10" :key="n" class="flex-1 bg-white/40 rounded-t" :style="{ height: (40 + n * 3) + 'px' }"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Cards Skeleton -->
+          <div class="grid grid-cols-2 gap-4">
+            <div
+              v-for="n in 4"
+              :key="n"
+              class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center"
+            >
+              <div class="w-12 h-12 rounded-full bg-gray-100 mr-4"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 w-20 bg-gray-100 rounded"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton: Recent Inquiries Table -->
+        <section>
+          <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="h-6 w-40 bg-gray-200 rounded"></div>
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div class="h-9 w-full sm:w-72 bg-gray-100 rounded-xl"></div>
+              <div class="h-9 w-28 bg-gray-100 rounded-lg"></div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-gray-200">
+            <table class="min-w-full border border-gray-100">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th v-for="n in 5" :key="n" class="px-6 py-3">
+                    <div class="h-3 w-16 bg-gray-200 rounded"></div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="row in 4" :key="row" class="bg-white">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gray-100"></div>
+                      <div class="space-y-2">
+                        <div class="h-3 w-24 bg-gray-100 rounded"></div>
+                        <div class="h-3 w-32 bg-gray-50 rounded"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="h-3 w-28 bg-gray-100 rounded mb-2"></div>
+                    <div class="h-3 w-40 bg-gray-50 rounded"></div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="h-3 w-20 bg-gray-100 rounded"></div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="h-6 w-24 bg-gray-100 rounded-full"></div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="h-3 w-24 bg-gray-100 rounded"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div v-else class="space-y-6">
         <!-- Top Section: Chart + Status Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">
@@ -229,6 +316,7 @@ const stats = ref({
 const inquiries = ref([])
 const user = ref({ firstName: '', lastName: '', role: '', emailAddress: '' })
 const studentId = localStorage.getItem('id')
+const isLoading = ref(true)
 
 // ==============================
 // 🔹 Dropdown and Filter Config
@@ -409,6 +497,8 @@ const fetchDashboardData = async () => {
     }
   } catch (err) {
     console.error('❌ Error fetching dashboard:', err)
+  } finally {
+    isLoading.value = false
   }
 }
 

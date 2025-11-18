@@ -28,6 +28,23 @@
 
     <!-- Notifications List -->
     <div class="mt-6 space-y-6">
+      <!-- Skeleton Loading -->
+      <div v-if="loading" class="space-y-6 animate-pulse">
+        <section>
+          <div class="h-4 w-24 bg-gray-200 rounded mb-3"></div>
+          <div v-for="n in 3" :key="n" class="flex items-start gap-3 py-3">
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 w-40 bg-gray-200 rounded"></div>
+              <div class="h-3 w-56 bg-gray-100 rounded"></div>
+              <div class="h-2 w-24 bg-gray-100 rounded"></div>
+            </div>
+            <div class="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0"></div>
+          </div>
+        </section>
+      </div>
+
+      <div v-else class="space-y-6">
       <!-- Today Section -->
       <section v-if="todayNotifications.length > 0">
         <h2 class="text-lg font-semibold">Today</h2>
@@ -152,6 +169,7 @@
         <iconify-icon icon="mingcute:notification-off-line" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
         <p class="text-gray-600">You currently have no notifications.</p>
+      </div>
       </div>
     </div>
   </div>

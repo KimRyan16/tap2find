@@ -363,7 +363,7 @@ const convertToBackendFormat = (schedules) => {
 // Function to save ALL schedules to API (bulk save)
 const saveAllSchedules = async () => {
   try {
-    const professorId = getProfessorId()
+    const professorId = JSON.parse(localStorage.getItem('user'))?.id
     if (!professorId) {
       throw new Error('No professor ID found')
     }

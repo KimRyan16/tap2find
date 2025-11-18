@@ -5,6 +5,39 @@
 
     <!-- Content Division -->
     <div class="px-4 md:px-6 py-4 min-h-0">
+      <!-- Skeleton Loading -->
+      <div v-if="isLoading" class="space-y-4 animate-pulse">
+        <!-- Search bar skeleton -->
+        <div class="mb-4">
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 flex gap-2 items-center">
+              <div class="h-10 w-80 max-w-full bg-gray-100 rounded-full"></div>
+              <div class="h-9 w-9 rounded-full bg-gray-100"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards skeleton -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-for="n in 3" :key="n" class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center gap-4">
+              <div class="w-32 h-32 rounded-lg bg-gray-200"></div>
+              <div class="flex-1 space-y-3">
+                <div class="h-4 w-40 bg-gray-200 rounded"></div>
+                <div class="h-3 w-32 bg-gray-100 rounded"></div>
+                <div class="h-5 w-28 bg-gray-200 rounded-lg"></div>
+                <div class="flex items-center justify-between mt-2">
+                  <div class="h-3 w-24 bg-gray-100 rounded"></div>
+                  <div class="h-9 w-28 bg-gray-200 rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div v-else>
       <!-- Search and Filter Section -->
       <div>
       <!-- Search Bar -->
@@ -151,6 +184,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -316,16 +350,23 @@
             <div class="px-6 py-4  flex justify-end space-x-3">
               <button
                 @click="closeInquiryModal"
-                class="bg-gray-50 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                :disabled="isSending"
+                class="bg-gray-50 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 @click="submitInquiry"
-                class="px-4 py-2 bg-[#102A71] text-white rounded-lg hover:bg-[#102A71]/90 transition-colors flex items-center"
+                :disabled="isSending"
+                class="px-4 py-2 bg-[#102A71] text-white rounded-lg hover:bg-[#102A71]/90 transition-colors flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <iconify-icon icon="lucide:send" class="mr-2 h-4 w-4" />
-                Send Inquiry
+                <span v-if="isSending" class="mr-2 inline-flex items-center">
+                  <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                </span>
+                <span v-else class="mr-2">
+                  <iconify-icon icon="lucide:send" class="h-4 w-4" />
+                </span>
+                <span>{{ isSending ? 'Sending...' : 'Send Inquiry' }}</span>
               </button>
             </div>
           </div>
@@ -380,11 +421,13 @@ const showSearchDropdown = ref(false)
 const showYearLevelDropdown = ref(false)
 const showFilterSlider = ref(false)
 const isWeekend = ref(false)
+const isLoading = ref(true)
 
 const inquiryForm = ref({
   subject: '',
   message: ''
 })
+const isSending = ref(false)
 
 // Animation control
 let animationHideTimer = null
@@ -495,6 +538,10 @@ const closeInquiryModal = () => {
 }
 
 const submitInquiry = async () => {
+  if (isSending.value) return
+
+  isSending.value = true
+
   try {
     const professor = selectedProfessor.value
     const userData = JSON.parse(localStorage.getItem("user"))
@@ -528,7 +575,6 @@ const submitInquiry = async () => {
 
     if (response.data.success) {
       console.log("✅ Inquiry sent successfully:", response.data)
-      alert("✅ Inquiry sent successfully!")
 
       // 🧠 Send notification to the professor
       await api.post("/notification/add-notification", {
@@ -546,6 +592,9 @@ const submitInquiry = async () => {
       inquiryForm.value.subject = ''
       inquiryForm.value.message = ''
       showInquiryModal.value = false
+
+      // 🎬 Show success animation overlay
+      showAnimationModal.value = true
     } else {
       console.error("❌ Inquiry failed:", response.data)
       alert(response.data.message || "Failed to send inquiry.")
@@ -559,6 +608,8 @@ const submitInquiry = async () => {
       console.error("🚨 Unexpected error:", error)
       alert("Unexpected error while sending inquiry.")
     }
+  } finally {
+    isSending.value = false
   }
 }
 
@@ -650,6 +701,8 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error("Error loading professors:", err);
+  } finally {
+    isLoading.value = false
   }
 });
 

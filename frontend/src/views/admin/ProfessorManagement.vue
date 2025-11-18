@@ -1,38 +1,5 @@
 <template>
   <div class="p-6">
-    <!-- Real-time RFID Notification -->
-    <div v-if="showRfidNotification" class="fixed top-4 right-4 z-50">
-      <div class="bg-blue-500 text-white px-6 py-4 rounded-lg shadow-lg max-w-sm">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="font-semibold">New RFID Detected</h3>
-          <button @click="closeRfidNotification" class="text-white hover:text-blue-200">
-            ✖
-          </button>
-        </div>
-        <p class="text-sm mb-3">RFID: <strong class="font-mono">{{ detectedRfid }}</strong></p>
-        <p class="text-xs opacity-90 mb-3">This RFID is not assigned to any professor.</p>
-        <div class="flex gap-2">
-          <button 
-            @click="assignDetectedRfid"
-            class="flex-1 bg-white text-blue-600 py-2 px-3 rounded text-sm font-medium hover:bg-blue-50"
-          >
-            Assign Now
-          </button>
-          <button 
-            @click="useInCurrentForm"
-            class="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-green-700"
-          >
-            Use in Form
-          </button>
-          <button 
-            @click="closeRfidNotification"
-            class="flex-1 bg-gray-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-gray-700"
-          >
-            Later
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Assign RFID Modal -->
     <div v-if="showAssignModal" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">

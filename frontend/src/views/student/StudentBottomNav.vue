@@ -57,6 +57,19 @@
         <iconify-icon icon="lucide:user" class="h-6 w-6 mb-1" />
         <span>Profile</span>
       </router-link>
+      <!-- Settings -->
+      <router-link
+        to="/student/settings"
+        class="flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors"
+        :class="[
+          $route.path === '/student/settings'
+            ? 'text-blue-600'
+            : 'text-gray-600 hover:text-blue-600'
+        ]"
+      >
+        <iconify-icon icon="lucide:settings" class="h-6 w-6 mb-1" />
+        <span>Settings</span>
+      </router-link>
     </div>
   </div>
 </template>
