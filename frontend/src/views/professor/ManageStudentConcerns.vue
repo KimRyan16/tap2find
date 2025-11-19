@@ -152,7 +152,33 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr v-for="item in filteredConcerns" :key="item.id" class="hover:bg-gray-50">
+                <!-- Skeleton rows -->
+                <template v-if="loading">
+                  <tr v-for="n in 4" :key="`sk-row-`+n">
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
+                        <div class="space-y-2">
+                          <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                          <div class="h-3 w-40 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="space-y-2">
+                        <div class="h-4 w-64 bg-gray-200 rounded animate-pulse"></div>
+                        <div class="h-3 w-44 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4"><div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div></td>
+                    <td class="px-6 py-4"><div class="h-5 w-24 bg-gray-200 rounded-full animate-pulse"></div></td>
+                    <td class="px-6 py-4"><div class="h-8 w-24 bg-gray-200 rounded-lg animate-pulse"></div></td>
+                  </tr>
+                </template>
+                <tr v-for="item in filteredConcerns" v-if="!loading" :key="item.id" class="hover:bg-gray-50">
                   <td class="px-6 py-4 text-sm text-gray-900">
                     <div class="flex items-center gap-3">
                       <div class="w-9 h-9 rounded-full bg-orange-200 text-orange-700 grid place-items-center font-bold">
@@ -195,11 +221,21 @@
                       </button>
                       <button
                         @click="resolveConcern(item)"
-                        class="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors"
+                        :disabled="isProcessing(item.id)"
+                        class="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         :class="item.status === 'pending' ? 'border-amber-300 text-amber-700 hover:bg-amber-50' : 'border-green-300 text-green-700 hover:bg-green-50'"
                       >
-                        <iconify-icon :icon="item.status === 'pending' ? 'tabler:mail-up' : 'mdi:email-check-outline'" class="text-base" />
-                        <span class="hidden sm:inline text-xs">{{ item.status === 'pending' ? 'Resolve' : 'Resolved' }}</span>
+                        <template v-if="isProcessing(item.id)">
+                          <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                          </svg>
+                          <span class="hidden sm:inline text-xs">Processing...</span>
+                        </template>
+                        <template v-else>
+                          <iconify-icon :icon="item.status === 'pending' ? 'tabler:mail-up' : 'mdi:email-check-outline'" class="text-base" />
+                          <span class="hidden sm:inline text-xs">{{ item.status === 'pending' ? 'Resolve' : 'Resolved' }}</span>
+                        </template>
                       </button>
                     </div>
                   </td>
@@ -209,14 +245,6 @@
                     <div class="flex flex-col items-center gap-2">
                       <iconify-icon icon="mdi:email-off-outline" class="text-3xl text-gray-300" />
                       <span>No concerns found</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="loading">
-                  <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
-                    <div class="flex flex-col items-center gap-2">
-                      <iconify-icon icon="eos-icons:loading" class="text-3xl text-gray-300 animate-spin" />
-                      <span>Loading concerns...</span>
                     </div>
                   </td>
                 </tr>
@@ -258,15 +286,19 @@
             <div class="mt-6 grid grid-cols-2 gap-3">
               <button
                 @click="declineSelected()"
-                class="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+                :disabled="!!modalProcessingAction"
+                class="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Mark as Pending
+                <span v-if="modalProcessingAction==='pending'" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>Processing...</span>
+                <span v-else>Mark as Pending</span>
               </button>
               <button
                 @click="acceptSelected()"
-                class="px-4 py-2 rounded-xl bg-[#102A71] text-white font-medium hover:bg-[#102A71]/90 transition-colors"
+                :disabled="!!modalProcessingAction"
+                class="px-4 py-2 rounded-xl bg-[#102A71] text-white font-medium hover:bg-[#102A71]/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Mark as Resolved
+                <span v-if="modalProcessingAction==='resolved'" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>Processing...</span>
+                <span v-else>Mark as Resolved</span>
               </button>
             </div>
           </div>
@@ -285,6 +317,114 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
 import api from '@/utils/api'
+
+// Toast helper (bottom-right, unified design)
+const showToast = (message, type = 'success', duration = 2600) => {
+  let container = document.getElementById('t2f-toast-container')
+  if (!container) {
+    container = document.createElement('div')
+    container.id = 't2f-toast-container'
+    container.style.position = 'fixed'
+    container.style.bottom = '16px'
+    container.style.right = '16px'
+    container.style.zIndex = '9999'
+    container.style.display = 'flex'
+    container.style.flexDirection = 'column-reverse'
+    container.style.gap = '10px'
+    document.body.appendChild(container)
+  }
+
+  const colors = type === 'success'
+    ? { border: '#34D399', text: '#065F46', iconBg: '#ECFDF5', iconFg: '#10B981', bar: '#6EE7B7' }
+    : { border: '#F87171', text: '#7F1D1D', iconBg: '#FEF2F2', iconFg: '#EF4444', bar: '#FCA5A5' }
+
+  const toast = document.createElement('div')
+  toast.style.minWidth = '280px'
+  toast.style.maxWidth = '460px'
+  toast.style.background = '#FFFFFF'
+  toast.style.border = `1.5px solid ${colors.border}`
+  toast.style.borderRadius = '14px'
+  toast.style.boxShadow = '0 12px 20px -6px rgba(0,0,0,0.12), 0 6px 10px -4px rgba(0,0,0,0.06)'
+  toast.style.overflow = 'hidden'
+  toast.style.opacity = '0'
+  toast.style.transform = 'translateY(12px)'
+  toast.style.transition = 'opacity 220ms ease, transform 220ms ease'
+
+  const row = document.createElement('div')
+  row.style.display = 'flex'
+  row.style.alignItems = 'center'
+  row.style.gap = '12px'
+  row.style.padding = '12px 16px'
+
+  const iconWrap = document.createElement('div')
+  iconWrap.style.width = '26px'
+  iconWrap.style.height = '26px'
+  iconWrap.style.borderRadius = '50%'
+  iconWrap.style.background = colors.iconBg
+  iconWrap.style.display = 'flex'
+  iconWrap.style.alignItems = 'center'
+  iconWrap.style.justifyContent = 'center'
+  iconWrap.style.flex = '0 0 auto'
+
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  icon.setAttribute('viewBox', '0 0 24 24')
+  icon.setAttribute('width', '16')
+  icon.setAttribute('height', '16')
+  icon.innerHTML = type === 'success'
+    ? `<path d="M9 12.75 11.25 15 15 9.75" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M12 8v4m0 4h.01" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="${colors.iconFg}" stroke-width="1.5" opacity="0.25"/>`
+  iconWrap.appendChild(icon)
+
+  const textBlock = document.createElement('div')
+  textBlock.style.display = 'flex'
+  textBlock.style.flexDirection = 'column'
+  textBlock.style.gap = '2px'
+  const title = document.createElement('div')
+  title.textContent = type === 'success' ? 'SUCCESS' : 'ERROR'
+  title.style.fontSize = '12px'
+  title.style.fontWeight = '800'
+  title.style.letterSpacing = '0.04em'
+  title.style.color = colors.text
+  const body = document.createElement('div')
+  body.textContent = message
+  body.style.fontSize = '14px'
+  body.style.fontWeight = '600'
+  body.style.color = '#111827'
+  textBlock.appendChild(title)
+  textBlock.appendChild(body)
+  row.appendChild(iconWrap)
+  row.appendChild(textBlock)
+
+  const barWrap = document.createElement('div')
+  barWrap.style.height = '2px'
+  barWrap.style.background = 'transparent'
+  barWrap.style.width = '100%'
+  const bar = document.createElement('div')
+  bar.style.height = '100%'
+  bar.style.width = '100%'
+  bar.style.background = colors.bar
+  bar.style.transition = `width ${duration}ms linear`
+  barWrap.appendChild(bar)
+
+  toast.appendChild(row)
+  toast.appendChild(barWrap)
+  container.appendChild(toast)
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1'
+    toast.style.transform = 'translateY(0)'
+    requestAnimationFrame(() => (bar.style.width = '0%'))
+  })
+
+  setTimeout(() => {
+    toast.style.opacity = '0'
+    toast.style.transform = 'translateY(8px)'
+    setTimeout(() => {
+      toast.remove()
+      if (!container.childElementCount) container.remove()
+    }, 240)
+  }, duration)
+}
 
 const user = ref({
   _id: '',
@@ -307,6 +447,16 @@ const openDropdowns = ref({
 // Modal state
 const isViewModalOpen = ref(false)
 const selectedConcern = ref(null)
+
+// Per-item processing state and modal processing
+const processingIds = ref(new Set())
+const isProcessing = (id) => processingIds.value.has(id)
+const setProcessing = (id, val) => {
+  const s = new Set(processingIds.value)
+  if (val) s.add(id); else s.delete(id)
+  processingIds.value = s
+}
+const modalProcessingAction = ref('') // '', 'pending', 'resolved'
 
 // Close dropdowns when clicking outside
 const handleClickOutside = (event) => {
@@ -503,32 +653,44 @@ function viewConcern(item) {
 async function resolveConcern(item) {
   try {
     const newStatus = item.status === 'pending' ? 'resolved' : 'pending'
+    setProcessing(item.id, true)
     await updateConcernStatus(item.id, newStatus)
+    showToast(newStatus === 'resolved' ? 'Concern marked as resolved' : 'Concern marked as pending', 'success')
   } catch (error) {
     console.error('Failed to update concern status:', error)
-    alert('Failed to update concern status. Please try again.')
+    showToast('Failed to update concern status. Please try again.', 'error')
+  } finally {
+    setProcessing(item.id, false)
   }
 }
 
 async function acceptSelected() {
   if (!selectedConcern.value) return
   try {
+    modalProcessingAction.value = 'resolved'
     await updateConcernStatus(selectedConcern.value.id, 'resolved')
+    showToast('Concern marked as resolved', 'success')
     closeViewModal()
   } catch (error) {
     console.error('Failed to resolve concern:', error)
-    alert('Failed to resolve concern. Please try again.')
+    showToast('Failed to resolve concern. Please try again.', 'error')
+  } finally {
+    modalProcessingAction.value = ''
   }
 }
 
 async function declineSelected() {
   if (!selectedConcern.value) return
   try {
+    modalProcessingAction.value = 'pending'
     await updateConcernStatus(selectedConcern.value.id, 'pending')
+    showToast('Concern marked as pending', 'success')
     closeViewModal()
   } catch (error) {
     console.error('Failed to update concern status:', error)
-    alert('Failed to update concern status. Please try again.')
+    showToast('Failed to update concern status. Please try again.', 'error')
+  } finally {
+    modalProcessingAction.value = ''
   }
 }
 

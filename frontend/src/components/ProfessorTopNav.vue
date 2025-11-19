@@ -424,7 +424,7 @@ const currentPageDescription = ref('Welcome to your professor dashboard')
 const updatePageInfo = () => {
   const path = route.path
   if (path === '/professor') {
-    currentPageTitle.value = `Welcome back, ${user.value.firstName || 'Professor'}!`
+    currentPageTitle.value = `Welcome back, Prof. ${user.value.firstName || 'Professor'}!`
     currentPageDescription.value = 'Manage inquiries, availability, and schedule'
   } else if (path.includes('/availability')) {
     currentPageTitle.value = 'Set Availability Status'

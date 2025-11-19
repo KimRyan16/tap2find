@@ -34,8 +34,39 @@
 
     <!-- Notifications List -->
     <div class="mt-6 space-y-6">
+      <!-- Skeleton while loading -->
+      <div v-if="loading" class="space-y-6">
+        <section>
+          <div class="h-5 w-24 bg-gray-200 rounded animate-pulse"></div>
+          <ul class="mt-2 space-y-3">
+            <li v-for="n in 4" :key="`sk-today-`+n" class="flex items-start gap-3 py-3">
+              <div class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </div>
+              <div class="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <div class="h-5 w-28 bg-gray-200 rounded animate-pulse"></div>
+          <ul class="mt-2 space-y-3">
+            <li v-for="n in 3" :key="`sk-y-`+n" class="flex items-start gap-3 py-3">
+              <div class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+              <div class="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
+            </li>
+          </ul>
+        </section>
+      </div>
       <!-- Today Section -->
-      <section v-if="todayNotifications.length > 0">
+      <section v-if="!loading && todayNotifications.length > 0">
         <h2 class="text-lg font-semibold">Today</h2>
         <ul class="mt-1">
           <li 
@@ -77,7 +108,7 @@
       </section>
 
       <!-- Yesterday Section -->
-      <section v-if="yesterdayNotifications.length > 0">
+      <section v-if="!loading && yesterdayNotifications.length > 0">
         <h2 class="text-lg font-semibold">Yesterday</h2>
         <ul class="mt-1">
           <li 
@@ -117,7 +148,7 @@
       </section>
 
       <!-- Older Section -->
-      <section v-if="olderNotifications.length > 0">
+      <section v-if="!loading && olderNotifications.length > 0">
         <h2 class="text-lg font-semibold">Older</h2>
         <ul class="mt-1">
           <li 
@@ -157,7 +188,7 @@
       </section>
 
       <!-- Empty State -->
-      <div v-if="filteredNotifications.length === 0" class="text-center py-12">
+      <div v-if="!loading && filteredNotifications.length === 0" class="text-center py-12">
         <iconify-icon icon="mingcute:notification-off-line" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
         <p class="text-gray-600">You currently have no notifications.</p>
@@ -203,6 +234,114 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/utils/api'
+
+// Toast helper (bottom-right)
+const showToast = (message, type = 'success', duration = 2600) => {
+  let container = document.getElementById('t2f-toast-container')
+  if (!container) {
+    container = document.createElement('div')
+    container.id = 't2f-toast-container'
+    container.style.position = 'fixed'
+    container.style.bottom = '16px'
+    container.style.right = '16px'
+    container.style.zIndex = '9999'
+    container.style.display = 'flex'
+    container.style.flexDirection = 'column-reverse'
+    container.style.gap = '10px'
+    document.body.appendChild(container)
+  }
+
+  const colors = type === 'success'
+    ? { border: '#34D399', text: '#065F46', iconBg: '#ECFDF5', iconFg: '#10B981', bar: '#6EE7B7' }
+    : { border: '#F87171', text: '#7F1D1D', iconBg: '#FEF2F2', iconFg: '#EF4444', bar: '#FCA5A5' }
+
+  const toast = document.createElement('div')
+  toast.style.minWidth = '280px'
+  toast.style.maxWidth = '460px'
+  toast.style.background = '#FFFFFF'
+  toast.style.border = `1.5px solid ${colors.border}`
+  toast.style.borderRadius = '14px'
+  toast.style.boxShadow = '0 12px 20px -6px rgba(0,0,0,0.12), 0 6px 10px -4px rgba(0,0,0,0.06)'
+  toast.style.overflow = 'hidden'
+  toast.style.opacity = '0'
+  toast.style.transform = 'translateY(12px)'
+  toast.style.transition = 'opacity 220ms ease, transform 220ms ease'
+
+  const row = document.createElement('div')
+  row.style.display = 'flex'
+  row.style.alignItems = 'center'
+  row.style.gap = '12px'
+  row.style.padding = '12px 16px'
+
+  const iconWrap = document.createElement('div')
+  iconWrap.style.width = '26px'
+  iconWrap.style.height = '26px'
+  iconWrap.style.borderRadius = '50%'
+  iconWrap.style.background = colors.iconBg
+  iconWrap.style.display = 'flex'
+  iconWrap.style.alignItems = 'center'
+  iconWrap.style.justifyContent = 'center'
+  iconWrap.style.flex = '0 0 auto'
+
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  icon.setAttribute('viewBox', '0 0 24 24')
+  icon.setAttribute('width', '16')
+  icon.setAttribute('height', '16')
+  icon.innerHTML = type === 'success'
+    ? `<path d="M9 12.75 11.25 15 15 9.75" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M12 8v4m0 4h.01" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="${colors.iconFg}" stroke-width="1.5" opacity="0.25"/>`
+  iconWrap.appendChild(icon)
+
+  const textBlock = document.createElement('div')
+  textBlock.style.display = 'flex'
+  textBlock.style.flexDirection = 'column'
+  textBlock.style.gap = '2px'
+  const title = document.createElement('div')
+  title.textContent = type === 'success' ? 'SUCCESS' : 'ERROR'
+  title.style.fontSize = '12px'
+  title.style.fontWeight = '800'
+  title.style.letterSpacing = '0.04em'
+  title.style.color = colors.text
+  const body = document.createElement('div')
+  body.textContent = message
+  body.style.fontSize = '14px'
+  body.style.fontWeight = '600'
+  body.style.color = '#111827'
+  textBlock.appendChild(title)
+  textBlock.appendChild(body)
+  row.appendChild(iconWrap)
+  row.appendChild(textBlock)
+
+  const barWrap = document.createElement('div')
+  barWrap.style.height = '2px'
+  barWrap.style.background = 'transparent'
+  barWrap.style.width = '100%'
+  const bar = document.createElement('div')
+  bar.style.height = '100%'
+  bar.style.width = '100%'
+  bar.style.background = colors.bar
+  bar.style.transition = `width ${duration}ms linear`
+  barWrap.appendChild(bar)
+
+  toast.appendChild(row)
+  toast.appendChild(barWrap)
+  container.appendChild(toast)
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1'
+    toast.style.transform = 'translateY(0)'
+    requestAnimationFrame(() => (bar.style.width = '0%'))
+  })
+
+  setTimeout(() => {
+    toast.style.opacity = '0'
+    toast.style.transform = 'translateY(8px)'
+    setTimeout(() => {
+      toast.remove()
+      if (!container.childElementCount) container.remove()
+    }, 240)
+  }, duration)
+}
 
 const selectedType = ref(null)
 const loading = ref(true)
@@ -322,8 +461,10 @@ const confirmDeleteSelected = async () => {
     await api.post('/notification/delete', { ids: selectedIds.value })
     notifications.value = notifications.value.filter(n => !selectedIds.value.includes(n._id))
     selectedIds.value = []
+    showToast('Deleted selected notifications', 'success')
   } catch (error) {
     console.error('❌ Error deleting selected notifications:', error)
+    showToast('Failed to delete selected notifications', 'error')
   } finally {
     deletingSelected.value = false
     showDeleteSelectedModal.value = false
@@ -349,8 +490,10 @@ const confirmDeleteAll = async () => {
     await api.post('/notification/delete-all', { userId, userRole })
     notifications.value = []
     selectedIds.value = []
+    showToast('Deleted all notifications', 'success')
   } catch (error) {
     console.error('❌ Error deleting all notifications:', error)
+    showToast('Failed to delete all notifications', 'error')
   } finally {
     deletingAll.value = false
     showDeleteAllModal.value = false

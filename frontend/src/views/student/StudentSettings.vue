@@ -188,68 +188,95 @@ const goBack = () => {
   router.back()
 }
 
-// Toast helper (top-right, smooth slide/fade, spinner + progress bar)
-const showToast = (message, type = 'success', duration = 2200) => {
+// Toast helper (bottom-right, white card, icon + title, progress line)
+const showToast = (message, type = 'success', duration = 2800) => {
   let container = document.getElementById('t2f-toast-container')
   if (!container) {
     container = document.createElement('div')
     container.id = 't2f-toast-container'
     container.style.position = 'fixed'
-    container.style.top = '16px'
+    container.style.bottom = '16px'
     container.style.right = '16px'
     container.style.zIndex = '9999'
     container.style.display = 'flex'
-    container.style.flexDirection = 'column'
-    container.style.gap = '8px'
+    container.style.flexDirection = 'column-reverse'
+    container.style.gap = '10px'
     document.body.appendChild(container)
   }
 
+  const colors = type === 'success'
+    ? { border: '#34D399', text: '#065F46', iconBg: '#ECFDF5', iconFg: '#10B981', bar: '#6EE7B7' }
+    : { border: '#F87171', text: '#7F1D1D', iconBg: '#FEF2F2', iconFg: '#EF4444', bar: '#FCA5A5' }
+
   const toast = document.createElement('div')
-  toast.style.minWidth = '260px'
-  toast.style.maxWidth = '420px'
-  toast.style.background = type === 'success' ? '#ECFDF5' : '#FEF2F2'
-  toast.style.border = `1px solid ${type === 'success' ? '#34D399' : '#F87171'}`
-  toast.style.color = '#111827'
-  toast.style.borderRadius = '9999px'
-  toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)'
+  toast.style.minWidth = '280px'
+  toast.style.maxWidth = '460px'
+  toast.style.background = '#FFFFFF'
+  toast.style.border = `1.5px solid ${colors.border}`
+  toast.style.borderRadius = '14px'
+  toast.style.boxShadow = '0 12px 20px -6px rgba(0,0,0,0.12), 0 6px 10px -4px rgba(0,0,0,0.06)'
   toast.style.overflow = 'hidden'
   toast.style.opacity = '0'
-  toast.style.transform = 'translateY(-12px)'
+  toast.style.transform = 'translateY(12px)'
   toast.style.transition = 'opacity 220ms ease, transform 220ms ease'
 
   const row = document.createElement('div')
   row.style.display = 'flex'
   row.style.alignItems = 'center'
-  row.style.gap = '8px'
-  row.style.padding = '8px 14px'
+  row.style.gap = '12px'
+  row.style.padding = '12px 16px'
 
-  const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  spinner.setAttribute('viewBox', '0 0 24 24')
-  spinner.setAttribute('width', '16')
-  spinner.setAttribute('height', '16')
-  spinner.innerHTML = `
-    <circle cx="12" cy="12" r="9" stroke="${type === 'success' ? '#10B981' : '#EF4444'}" stroke-width="2.5" fill="none" opacity="0.25"/>
-    <path d="M21 12a9 9 0 0 0-9-9" stroke="${type === 'success' ? '#10B981' : '#EF4444'}" stroke-width="2.5" fill="none" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.9s" repeatCount="indefinite" />
-    </path>
-  `
+  const iconWrap = document.createElement('div')
+  iconWrap.style.width = '26px'
+  iconWrap.style.height = '26px'
+  iconWrap.style.borderRadius = '50%'
+  iconWrap.style.background = colors.iconBg
+  iconWrap.style.display = 'flex'
+  iconWrap.style.alignItems = 'center'
+  iconWrap.style.justifyContent = 'center'
+  iconWrap.style.flex = '0 0 auto'
 
-  const text = document.createElement('div')
-  text.textContent = message
-  text.style.fontSize = '14px'
-  text.style.fontWeight = '600'
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  icon.setAttribute('viewBox', '0 0 24 24')
+  icon.setAttribute('width', '16')
+  icon.setAttribute('height', '16')
+  icon.innerHTML = type === 'success'
+    ? `<path d="M9 12.75 11.25 15 15 9.75" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M12 8v4m0 4h.01" fill="none" stroke="${colors.iconFg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="${colors.iconFg}" stroke-width="1.5" opacity="0.25"/>`
+  iconWrap.appendChild(icon)
 
-  row.appendChild(spinner)
-  row.appendChild(text)
+  const textBlock = document.createElement('div')
+  textBlock.style.display = 'flex'
+  textBlock.style.flexDirection = 'column'
+  textBlock.style.gap = '2px'
+
+  const title = document.createElement('div')
+  title.textContent = type === 'success' ? 'SUCCESS' : 'ERROR'
+  title.style.fontSize = '12px'
+  title.style.fontWeight = '800'
+  title.style.letterSpacing = '0.04em'
+  title.style.color = colors.text
+
+  const body = document.createElement('div')
+  body.textContent = message
+  body.style.fontSize = '14px'
+  body.style.fontWeight = '600'
+  body.style.color = '#111827'
+
+  textBlock.appendChild(title)
+  textBlock.appendChild(body)
+
+  row.appendChild(iconWrap)
+  row.appendChild(textBlock)
 
   const barWrap = document.createElement('div')
-  barWrap.style.height = '3px'
+  barWrap.style.height = '2px'
   barWrap.style.background = 'transparent'
   barWrap.style.width = '100%'
   const bar = document.createElement('div')
   bar.style.height = '100%'
   bar.style.width = '100%'
-  bar.style.background = type === 'success' ? '#6EE7B7' : '#FCA5A5'
+  bar.style.background = colors.bar
   bar.style.transition = `width ${duration}ms linear`
   barWrap.appendChild(bar)
 
@@ -265,7 +292,7 @@ const showToast = (message, type = 'success', duration = 2200) => {
 
   setTimeout(() => {
     toast.style.opacity = '0'
-    toast.style.transform = 'translateY(-8px)'
+    toast.style.transform = 'translateY(8px)'
     setTimeout(() => {
       toast.remove()
       if (!container.childElementCount) container.remove()
@@ -336,14 +363,46 @@ const savePassword = async () => {
 // Notifications
 const notify = ref({ enabled: true, channels: { email: true, sms: false } })
 const savingNotifications = ref(false)
+
+async function loadPreferences() {
+  try {
+    const userId = getCurrentUserId()
+    if (!userId) return
+    const res = await fetch(`http://localhost:3000/api/user-settings/${userId}/notifications`, {
+      headers: { ...authHeaders() }
+    })
+    const data = await res.json()
+    if (res.ok && data?.success) {
+      const prefs = data.data?.preferences
+      if (prefs && typeof prefs === 'object') {
+        notify.value = {
+          enabled: !!prefs.enabled,
+          channels: {
+            email: !!(prefs.channels?.email),
+            sms: !!(prefs.channels?.sms)
+          }
+        }
+      }
+    }
+  } catch {}
+}
+
 const saveNotifications = async () => {
   if (savingNotifications.value) return
   savingNotifications.value = true
   try {
-    // Placeholder to persist — extend with real API as needed
-    console.log('Saved notification prefs', notify.value)
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const userId = getCurrentUserId()
+    if (!userId) throw new Error('Missing user')
+    const res = await fetch(`http://localhost:3000/api/user-settings/${userId}/notifications`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ preferences: notify.value })
+    })
+    const data = await res.json()
+    if (!res.ok || data.success === false) throw new Error(data.message || 'Failed to save preferences')
     showToast('Notification preferences saved', 'success')
+  } catch (e) {
+    showToast(e?.message || 'Failed to save preferences', 'error')
   } finally {
     savingNotifications.value = false
   }
@@ -475,5 +534,6 @@ async function signOutAll() {
 
 onMounted(() => {
   loadSessions()
+  loadPreferences()
 })
 </script>
