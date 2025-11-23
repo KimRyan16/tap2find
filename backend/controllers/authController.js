@@ -167,9 +167,9 @@ export const loginUser = async (req, res) => {
     const user = await users.findOne({ emailAddress: email });
     
     if (!user) {
-      return res.status(401).json({ 
+      return res.status(404).json({ 
         success: false, 
-        message: "Invalid email or password" 
+        message: "User not found" 
       });
     }
 
@@ -183,9 +183,36 @@ export const loginUser = async (req, res) => {
     }
 
     if (!user.isVerified) {
+      // Auto-send OTP and prompt verification
+      const newOTP = generateOTP();
+      const newExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { otp: newOTP, otpExpires: newExpiry } }
+      );
+
+      try {
+        await transporter.sendMail({
+          from: `"Tap2Find Authentication" <${process.env.EMAIL_USER}>`,
+          to: user.emailAddress,
+          subject: "Your Tap2Find Verification Code",
+          html: `
+            <h2>Verify your email</h2>
+            <p>Your verification code is:</p>
+            <h1>${newOTP}</h1>
+            <p>This code will expire in <b>5 minutes</b>.</p>
+          `,
+        });
+      } catch (mailErr) {
+        console.error('Failed to send OTP email on login:', mailErr);
+      }
+
       return res.status(403).json({
         success: false,
-        message: "Your email is not verified. Please verify it before logging in.",
+        requireVerification: true,
+        email: user.emailAddress,
+        message: "Your email is not verified. A new verification code has been sent to your email.",
       });
     }
 

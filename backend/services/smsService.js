@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 dotenv.config();
 
-const FIREBASE_URL = process.env.FIREBASE_URL;
+const FIREBASE_URL = process.env.FIREBASE_URL || 'https://sms-gateway-72a7b-default-rtdb.firebaseio.com/sms_queue.json';
 
 /**
  * Send SMS via Firebase

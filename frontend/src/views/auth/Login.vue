@@ -109,7 +109,7 @@
             </label>
           </div> -->
           <router-link 
-            to="/forgot-password" 
+            :to="{ path: '/forgot-password', query: { email: form.email || '' } }" 
             class="text-sm text-blue-600 hover:text-blue-500 transition-colors"
             :class="isLoading ? 'pointer-events-none opacity-50' : ''"
           >
@@ -249,24 +249,41 @@ const handleLogin = async () => {
       else if (user.role === 'professor') router.push('/professor')
       else if (user.role === 'admin') router.push('/admin')
       else {
-        console.warn('⚠️ Unknown role, redirecting to default');
+        console.warn('Unknown role, redirecting to default');
         router.push('/')
       }
     }
 
   } catch (err) {
-    console.error('❌ Login error details:', {
+    console.error('Login error details:', {
       status: err.response?.status,
       data: err.response?.data,
       message: err.message,
       config: err.config
     });
     
-    const msg = err.response?.data?.message || 'An error occurred.'
+    // If backend indicates verification is required, redirect to Verify Email
+    if (err.response?.status === 403 && err.response?.data?.requireVerification) {
+      const randomPath = Math.random().toString(36).substring(2, 10) +
+                         Math.random().toString(36).substring(2, 10)
+      router.push({
+        path: `/${randomPath}/verify-email`,
+        query: { email: form.value.email }
+      })
+      return
+    }
     
-    if (msg.includes('User not found') || err.response?.status === 404)
+    const msg = err.response?.data?.message || 'An error occurred.'
+
+    // Backend returns 401 for both non-existent user and wrong password
+    if (err.response?.status === 401) {
+      const unified = 'Incorrect email or password.'
+      errors.value.email = unified
+      errors.value.password = unified
+    }
+    else if (msg.includes('User not found') || err.response?.status === 404)
       errors.value.email = 'No account found with this email.'
-    else if (msg.includes('Incorrect password') || err.response?.status === 401)
+    else if (msg.includes('Incorrect password'))
       errors.value.password = 'Incorrect password.'
     else if (msg.includes('not verified') || err.response?.status === 403)
       errors.value.email = 'Email not verified. Please check your inbox.'

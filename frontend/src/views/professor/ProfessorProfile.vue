@@ -1,8 +1,7 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <ProfessorTopNav />
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
 
-    <div class="px-4 md:px-6 pt-8">
+    <div class="px-0 md:px-6 pt-8">
       <div class="mb-4">
         <button @click="goBack" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 ">
           <iconify-icon icon="ion:chevron-back" class="text-base" />
@@ -50,12 +49,12 @@
               </button>
               <input ref="avatarInput" type="file" accept="image/*" class="hidden" @change="onAvatarSelected" />
             </div>
-            <div class="mt-2 flex flex-col items-center justify-center gap-1">
+            <div class="mt-2 flex flex-col items-center justify-center gap-1 w-full">
               <div class="flex items-center justify-center gap-2">
-                <h2 class="text-2xl font-bold text-gray-900">{{ fullName }}</h2>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900">{{ fullName }}</h2>
                 <iconify-icon icon="lucide:badge-check" class="text-green-500" />
               </div>
-              <div class="text-base text-gray-900 font-semibold ">{{ form.emailAddress }}</div>
+              <div class="text-sm md:text-base text-gray-900 font-semibold break-words whitespace-normal text-center px-4 w-full max-w-full">{{ form.emailAddress }}</div>
               <div class="text-sm text-gray-600 font-medium">{{ form.position }}</div>
             </div>
             <div class="mt-4 flex items-center justify-center gap-3">
@@ -183,7 +182,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
 import api from '@/utils/api'
 
 const router = useRouter()
@@ -307,7 +305,7 @@ const initialForm = {
   birthdate: '',
   address: '',
   position: '',
-  department: '',
+  department: 'CCS',
   subjectHandles: '',
   contactNumber: '',
   emailAddress: '',
@@ -410,7 +408,7 @@ const fetchProfile = async () => {
         birthdate: professor.birthdate || '',
         address: professor.address || '',
         position: professor.position || '',
-        department: professor.department || professor.postGraduate || '',
+        department: (professor.department && String(professor.department).trim()) || professor.postGraduate || 'CCS',
         subjectHandles: professor.subjectHandles || '',
         contactNumber: professor.contactNumber || '',
         emailAddress: professor.emailAddress || '',
@@ -464,7 +462,7 @@ const onSave = async () => {
       birthdate: form.value.birthdate,
       address: form.value.address,
       position: form.value.position,
-      department: form.value.department,
+      department: (form.value.department && String(form.value.department).trim()) || 'CCS',
       subjectHandles: form.value.subjectHandles,
       contactNumber: form.value.contactNumber,
       emailAddress: form.value.emailAddress,
@@ -503,6 +501,25 @@ const onSave = async () => {
       snapshot.value = JSON.parse(JSON.stringify(form.value))
       isEditing.value = false
       
+      // Persist minimal user info to localStorage for top nav and other consumers
+      try {
+        const storageKeys = ['professor', 'user', 'currentUser']
+        for (const key of storageKeys) {
+          const raw = localStorage.getItem(key)
+          if (!raw) continue
+          const obj = JSON.parse(raw)
+          obj.firstName = updatedProfessor.firstName || obj.firstName || ''
+          obj.lastName = updatedProfessor.lastName || obj.lastName || ''
+          obj.emailAddress = updatedProfessor.emailAddress || obj.emailAddress || ''
+          obj.avatarUrl = updatedProfessor.avatarUrl || obj.avatarUrl || '/profile.svg'
+          localStorage.setItem(key, JSON.stringify(obj))
+        }
+        // Notify any listeners (e.g., top nav) to refresh
+        window.dispatchEvent(new Event('profile:updated'))
+      } catch (e) {
+        console.warn('Failed to sync localStorage after profile update', e)
+      }
+
       showToast('Profile updated successfully', 'success')
       console.log('Profile updated successfully')
     } else {

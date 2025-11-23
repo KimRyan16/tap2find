@@ -130,6 +130,7 @@ export const getRecentConcerns = async (req, res) => {
             `${student.firstName?.charAt(0) || ''}${student.lastName?.charAt(0) || ''}`.toUpperCase() : 
             'US',
           email: student?.emailAddress || '',
+          avatarUrl: student?.avatarUrl || null,
           yearLevel: student?.yearLevel || null,
           section: student?.section || null,
           status: inquiry.status || 'pending',
@@ -194,6 +195,7 @@ export const getAllConcerns = async (req, res) => {
             `${student.firstName?.charAt(0) || ''}${student.lastName?.charAt(0) || ''}`.toUpperCase() : 
             'US',
           email: student?.emailAddress || '',
+          avatarUrl: student?.avatarUrl || null,
           yearLevel: student?.yearLevel || null,
           section: student?.section || null,
           status: inquiry.status || 'pending',
@@ -860,10 +862,11 @@ export const getAllProfessors = async (req, res) => {
         status: 1,
         emailAddress: 1,
         isVerified: 1,
+        avatarUrl: 1,
       })
       .toArray();
 
-    // Check if it's weekend and get current time
+    // Check current time (weekend does not force Not Available)
     const now = new Date();
     const isWeekend = now.getDay() === 0 || now.getDay() === 6;
     const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
@@ -884,7 +887,7 @@ export const getAllProfessors = async (req, res) => {
       let availabilityStatus = "not-available";
       let hasCurrentSchedule = false;
 
-      if (!isWeekend && professorSchedule) {
+      if (professorSchedule) {
         // Check if professor has schedule for current day and time
         const todaysSchedule = professorSchedule.schedule?.filter(
           s => s.day === currentDay
@@ -898,31 +901,31 @@ export const getAllProfessors = async (req, res) => {
         if (currentSchedule) {
           hasCurrentSchedule = true;
           currentRoom = currentSchedule.room || currentSchedule.location || "Scheduled Class";
-          
           // If professor has a scheduled class, they are busy
           availabilityStatus = "busy";
-        } else if (p.status && p.isVerified !== false) {
-          // No current schedule, use professor's manual status
-          availabilityStatus = p.status.toLowerCase();
         }
-      } else if (!isWeekend && p.status && p.isVerified !== false) {
-        // No schedule but has manual status on weekday
-        availabilityStatus = p.status.toLowerCase();
-      } else {
-        // Weekend or no status
-        availabilityStatus = "not-available";
+      }
+
+      // If not currently in class, use manual status regardless of weekend
+      if (!hasCurrentSchedule) {
+        if (p.status) {
+          availabilityStatus = p.status.toLowerCase();
+        } else {
+          availabilityStatus = "not-available";
+        }
       }
 
       return {
         id: p._id.toString(),
         name: `${p.firstName} ${p.lastName}`,
-        department: p.department || "Unknown Department",
+        department: (p.department && String(p.department).trim()) || 'CCS',
         office: p.office || "No office assigned",
         email: p.emailAddress,
         available: availabilityStatus,
         isWeekend: isWeekend,
         currentRoom: currentRoom,
         hasCurrentSchedule: hasCurrentSchedule,
+        avatarUrl: p.avatarUrl || null,
         currentDay: currentDay,
         currentHour: currentHour
       };
@@ -982,7 +985,7 @@ export const getProfessorProfile = async (req, res) => {
         birthdate: professor.birthdate || '',
         address: professor.address || '',
         position: professor.position || '',
-        department: professor.department || professor.postGraduate || '',
+        department: (professor.department && String(professor.department).trim()) || professor.postGraduate || 'CCS',
         subjectHandles: professor.subjectHandles || '',
         contactNumber: professor.contactNumber || '',
         emailAddress: professor.emailAddress || '',

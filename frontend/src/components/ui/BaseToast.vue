@@ -43,9 +43,9 @@
         :class="typeClass.trackBg"
       >
         <div
-          class="h-full transition-all duration-[3000ms]"
+          class="h-full transition-all"
           :class="typeClass.barBg"
-          :style="{ width: progress + '%' }"
+          :style="{ width: progress + '%', transitionDuration: progressTickMs + 'ms' }"
         ></div>
       </div>
     </div>
@@ -59,6 +59,8 @@ const props = defineProps({
   visible: { type: Boolean, default: false },
   message: { type: String, default: '' },
   progress: { type: Number, default: 0 },
+  duration: { type: Number, default: 2500 },
+  progressTickMs: { type: Number, default: 120 },
   type: {
     type: String,
     default: 'success',

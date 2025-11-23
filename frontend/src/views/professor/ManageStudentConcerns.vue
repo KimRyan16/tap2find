@@ -1,42 +1,41 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <ProfessorTopNav />
-    <div class="px-4 md:px-6 py-4 min-h-0">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8 min-h-0">
       <div class="space-y-6">
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="rounded-2xl shadow p-5 flex items-center gap-3">
+          <div class="rounded-2xl shadow p-4 md:p-5 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 grid place-items-center">
               <iconify-icon icon="material-symbols:mail-outline" class="text-2xl" />
             </div>
             <div>
               <div class="text-gray-600">Total Concerns</div>
-              <div class="text-3xl font-bold">{{ totalConcerns }}</div>
+              <div class="text-2xl md:text-3xl font-bold">{{ totalConcerns }}</div>
             </div>
           </div>
-          <div class="rounded-2xl shadow p-5 flex items-center gap-3">
+          <div class="rounded-2xl shadow p-4 md:p-5 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 grid place-items-center">
               <iconify-icon icon="tabler:mail-up" class="text-2xl" />
             </div>
             <div>
               <div class="text-gray-600">Pending</div>
-              <div class="text-3xl font-bold">{{ pendingCount }}</div>
+              <div class="text-2xl md:text-3xl font-bold">{{ pendingCount }}</div>
             </div>
           </div>
-          <div class="rounded-2xl shadow p-5 flex items-center gap-3">
+          <div class="rounded-2xl shadow p-4 md:p-5 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-green-100 text-green-600 grid place-items-center">
               <iconify-icon icon="mdi:email-check-outline" class="text-2xl" />
             </div>
             <div>
               <div class="text-gray-600">Resolved</div>
-              <div class="text-3xl font-bold">{{ resolvedCount }}</div>
+              <div class="text-2xl md:text-3xl font-bold">{{ resolvedCount }}</div>
             </div>
           </div>
         </div>
 
         <!-- Filters -->
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex-1 min-w-[200px] max-w-md">
+        <div class="flex flex-wrap items-center gap-3 sm:justify-between">
+          <div class="w-full sm:flex-1 min-w-[200px] max-w-md">
             <div class="relative">
               <iconify-icon icon="fluent:search-16-filled" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
               <input
@@ -47,7 +46,7 @@
               />
             </div>
           </div>
-          <div class="flex flex-wrap gap-3">
+          <div class="w-full sm:w-auto sm:ml-auto flex justify-end flex-wrap gap-2 sm:gap-3">
             <!-- Status Dropdown -->
             <div class="relative dropdown-container">
               <button
@@ -181,8 +180,9 @@
                 <tr v-for="item in filteredConcerns" v-if="!loading" :key="item.id" class="hover:bg-gray-50">
                   <td class="px-6 py-4 text-sm text-gray-900">
                     <div class="flex items-center gap-3">
-                      <div class="w-9 h-9 rounded-full bg-orange-200 text-orange-700 grid place-items-center font-bold">
-                        {{ item.initials }}
+                      <div class="w-9 h-9 rounded-full overflow-hidden bg-orange-200 text-orange-700 grid place-items-center font-bold">
+                        <img v-if="item.avatarUrl" :src="item.avatarUrl" alt="avatar" class="w-full h-full object-cover" />
+                        <span v-else>{{ item.initials }}</span>
                       </div>
                       <div class="flex flex-col">
                         <span class="font-medium">{{ item.name }}</span>
@@ -221,7 +221,7 @@
                       </button>
                       <button
                         @click="resolveConcern(item)"
-                        :disabled="isProcessing(item.id)"
+                        :disabled="isProcessing(item.id) || item.status !== 'pending'"
                         class="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         :class="item.status === 'resolved' ? 'border-green-300 text-green-700 hover:bg-green-50' : 'border-amber-300 text-amber-700 hover:bg-amber-50'"
                       >
@@ -234,7 +234,7 @@
                         </template>
                         <template v-else>
                           <iconify-icon :icon="item.status === 'resolved' ? 'mdi:email-check-outline' : 'tabler:mail-up'" class="text-base" />
-                          <span class="hidden sm:inline text-xs">{{ item.status === 'resolved' ? 'Resolved' : 'Resolve' }}</span>
+                          <span class="hidden sm:inline text-xs">{{ item.status === 'resolved' ? 'Resolved' : (item.status !== 'pending' ? 'Already Resolved' : 'Resolve') }}</span>
                         </template>
                       </button>
                     </div>
@@ -262,8 +262,9 @@
         <div class="relative w-[90%] max-w-md rounded-2xl shadow-xl overflow-hidden bg-white">
           <!-- Header -->
           <div class="flex items-center gap-3 bg-gray-100 px-4 py-3">
-            <div class="w-10 h-10 rounded-full bg-orange-200 text-orange-700 grid place-items-center font-bold">
-              {{ selectedConcern?.initials }}
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-orange-200 text-orange-700 grid place-items-center font-bold">
+              <img v-if="selectedConcern?.avatarUrl" :src="selectedConcern?.avatarUrl" alt="avatar" class="w-full h-full object-cover" />
+              <span v-else>{{ selectedConcern?.initials }}</span>
             </div>
             <div class="flex-1">
               <div class="font-semibold text-gray-900">{{ selectedConcern?.name }}</div>
@@ -286,7 +287,7 @@
             <div class="mt-6 grid grid-cols-2 gap-3">
               <button
                 @click="openReplyModal"
-                :disabled="!!modalProcessingAction"
+                :disabled="!!modalProcessingAction || selectedConcern?.status !== 'pending'"
                 class="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-medium hover:bg-red-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span v-if="modalProcessingAction==='decline'" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>Processing...</span>
@@ -294,7 +295,7 @@
               </button>
               <button
                 @click="acceptSelected()"
-                :disabled="!!modalProcessingAction"
+                :disabled="!!modalProcessingAction || selectedConcern?.status !== 'pending'"
                 class="px-4 py-2 rounded-xl bg-[#102A71] text-white font-medium hover:bg-[#102A71]/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span v-if="modalProcessingAction==='accept'" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>Processing...</span>
@@ -362,12 +363,16 @@
         </div>
       </div>
     </Transition>
+
+    <!-- Global processing overlay spinner -->
+    <div v-if="globalProcessing" class="fixed inset-0 z-[130] flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
+      <span class="w-10 h-10 border-4 border-white/60 border-t-[#102A71] rounded-full animate-spin"></span>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
 import api from '@/utils/api'
 
 // Toast helper (bottom-right, unified design)
@@ -511,7 +516,8 @@ const setProcessing = (id, val) => {
   if (val) s.add(id); else s.delete(id)
   processingIds.value = s
 }
-const modalProcessingAction = ref('') // '', 'pending', 'resolved'
+const modalProcessingAction = ref('') // '', 'accepted', 'decline'
+const globalProcessing = computed(() => processingIds.value.size > 0 || !!modalProcessingAction.value)
 
 // Open reply modal
 const openReplyModal = () => {
@@ -587,6 +593,7 @@ const fetchAllConcerns = async () => {
         name: inquiry.name,
         email: inquiry.email,
         initials: inquiry.initials,
+        avatarUrl: inquiry.avatarUrl || null,
         subject: inquiry.subject,
         message: inquiry.message,
         status: inquiry.status || 'pending',
@@ -814,7 +821,7 @@ async function acceptSelected() {
   try {
     modalProcessingAction.value = 'accepted'
     await updateConcernStatus(selectedConcern.value.id, 'accepted')
-    showToast('Concern marked as resolved', 'success')
+    showToast('Concern accepted', 'success')
     closeViewModal()
   } catch (error) {
     console.error('Failed to resolve concern:', error)
@@ -828,8 +835,8 @@ async function declineSelected() {
   if (!selectedConcern.value) return
   try {
     modalProcessingAction.value = 'decline'
-    await updateConcernStatus(selectedConcern.value.id, 'decline')
-    showToast('Concern marked as pending', 'success')
+    await updateConcernStatus(selectedConcern.value.id, 'declined')
+    showToast('Concern declined', 'success')
     closeViewModal()
   } catch (error) {
     console.error('Failed to update concern status:', error)
@@ -919,6 +926,7 @@ onUnmounted(() => {
 
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -926,6 +934,7 @@ onUnmounted(() => {
 
 .line-clamp-1 {
   display: -webkit-box;
+  line-clamp: 1;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;

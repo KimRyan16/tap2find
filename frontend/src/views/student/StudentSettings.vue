@@ -1,18 +1,18 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <div class="px-4 md:px-6 pt-8">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8">
       <div class="mb-4">
         <button @click="goBack" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 ">
           <iconify-icon icon="ion:chevron-back" class="text-base" />
           <span>Back</span>
         </button>
       </div>
-      <h1 class="text-4xl font-semibold text-gray-900 ">Settings</h1>
-      <p class="text-base text-gray-500 mb-6">Manage your account preferences, notifications, and security.</p>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 ">Settings</h1>
+      <p class="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6">Manage your account preferences, notifications, and security.</p>
 
     <!-- Skeleton Loading -->
     <div v-if="isLoading" class="space-y-6 animate-pulse">
-      <section class="bg-white shadow rounded-xl p-5">
+      <section class="bg-white shadow rounded-xl p-4 md:p-5">
         <div class="h-5 w-40 bg-gray-200 rounded mb-4"></div>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="h-10 bg-gray-100 rounded sm:col-span-2"></div>
@@ -20,7 +20,7 @@
           <div class="h-10 bg-gray-100 rounded"></div>
         </div>
       </section>
-      <section class="bg-white shadow rounded-xl p-5">
+      <section class="bg-white shadow rounded-xl p-4 md:p-5">
         <div class="h-5 w-48 bg-gray-200 rounded mb-4"></div>
         <div class="h-10 bg-gray-100 rounded mb-3"></div>
         <div class="grid sm:grid-cols-2 gap-4">
@@ -39,8 +39,8 @@
     <div v-else>
 
     <!-- Change Password -->
-    <section class="bg-white shadow rounded-xl p-5 mb-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+    <section class="bg-white shadow rounded-xl p-4 md:p-5 mb-6">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Change Password</h2>
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
           <label class="block text-sm text-gray-600 mb-1">Current Password</label>
@@ -70,8 +70,8 @@
     </section>
 
     <!-- Notifications -->
-    <section class="bg-white shadow rounded-xl p-5 mb-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Received Notification</h2>
+    <section class="bg-white shadow rounded-xl p-4 md:p-5 mb-6">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Received Notification</h2>
       <div class="flex items-center justify-between mb-4">
         <div>
           <div class="text-sm font-medium text-gray-900">Notifications</div>
@@ -115,8 +115,8 @@
     </section>
 
     <!-- Login & Security -->
-    <section class="bg-white shadow rounded-xl p-5">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Login & Security</h2>
+    <section class="bg-white shadow rounded-xl p-4 md:p-5">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Login & Security</h2>
       <div class="space-y-5">
         
 

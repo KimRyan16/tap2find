@@ -84,7 +84,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import api from '@/utils/api.js'
 
 const form = ref({
@@ -132,5 +133,14 @@ const resendEmail = async () => {
   emailSent.value = false
   await handleForgotPassword()
 }
+
+// Prefill email from query parameter if provided
+const route = useRoute()
+onMounted(() => {
+  const qEmail = (route.query?.email || '').toString().trim()
+  if (qEmail) {
+    form.value.email = qEmail
+  }
+})
 </script>
 

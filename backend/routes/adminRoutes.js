@@ -13,6 +13,7 @@ import {
 } from "../controllers/admin/adminProfessorController.js";
 import { getConcerns, getConcernById, updateConcernStatus, archiveConcern, deleteConcern } from "../controllers/admin/adminConcernsController.js";
 import { getReportsSummary } from "../controllers/admin/adminReportController.js";
+import { getAdminProfile, updateAdminProfile, uploadAdminPhoto } from "../controllers/admin/adminProfileController.js";
 import multer from "multer";
 
 const router = express.Router();
@@ -48,6 +49,11 @@ router.get("/concerns/:id", getConcernById);
 router.patch("/concerns/:id/status", updateConcernStatus);
 router.patch("/concerns/:id/archive", archiveConcern);
 router.delete("/concerns/:id", deleteConcern);
+
+// Admin Profile
+router.get("/profile/:id", getAdminProfile);
+router.patch("/profile/:id", updateAdminProfile);
+router.post("/profile/:id/photo", upload.single("file"), uploadAdminPhoto);
 
 // Reports
 router.get("/reports/summary", getReportsSummary);

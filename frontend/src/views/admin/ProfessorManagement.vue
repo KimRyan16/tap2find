@@ -7,39 +7,7 @@
       :progress="toast.progress"
       :type="toast.type"
     />
-    <!-- Real-time RFID Notification -->
-    <div v-if="showRfidNotification" class="fixed top-4 right-4 z-50">
-      <div class="bg-blue-500 text-white px-6 py-4 rounded-lg shadow-lg max-w-sm">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="font-semibold">New RFID Detected</h3>
-          <button @click="closeRfidNotification" class="text-white hover:text-blue-200">
-            ✖
-          </button>
-        </div>
-        <p class="text-sm mb-3">RFID: <strong class="font-mono">{{ detectedRfid }}</strong></p>
-        <p class="text-xs opacity-90 mb-3">This RFID is not assigned to any professor.</p>
-        <div class="flex gap-2">
-          <button 
-            @click="assignDetectedRfid"
-            class="flex-1 bg-white text-blue-600 py-2 px-3 rounded text-sm font-medium hover:bg-blue-50"
-          >
-            Assign Now
-          </button>
-          <button 
-            @click="useInCurrentForm"
-            class="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-green-700"
-          >
-            Use in Form
-          </button>
-          <button 
-            @click="closeRfidNotification"
-            class="flex-1 bg-gray-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-gray-700"
-          >
-            Later
-          </button>
-        </div>
-      </div>
-    </div>
+    
 
     <!-- Assign RFID Modal -->
     <div v-if="showAssignModal" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -224,6 +192,8 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Advisory Class</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RFID ID</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -241,7 +211,13 @@
                 {{ (p.firstName || '') + ' ' + (p.lastName || '') }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ p.facultyPosition || p.department || '-' }}
+                {{ p.department || 'CCS' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ p.facultyPosition || p.position || '-' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ p.advisoryClass || '-' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span v-if="p.idNumber" class="font-mono bg-gray-100 px-2 py-1 rounded">{{ p.idNumber }}</span>
@@ -287,7 +263,7 @@
               </td>
             </tr>
             <tr v-if="filteredProfessors.length === 0">
-              <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">
+              <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">
                 No professors found.
               </td>
             </tr>
@@ -419,30 +395,40 @@
                   :class="viewTarget?.isVerified
                     ? 'border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200'
                     : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'"
+                  :disabled="togglingStatus"
                   @click="toggleDisable(viewTarget)"
                 >
-                  <svg
-                    v-if="viewTarget?.isVerified"
-                    class="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6" />
-                    <path d="M9 12H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                  </svg>
-                  <svg
-                    v-else
-                    class="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6" />
-                    <path d="M12 8V16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                    <path d="M8 12H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                  </svg>
-                  <span>{{ viewTarget?.isVerified ? 'Disable' : 'Enable' }}</span>
+                  <template v-if="togglingStatus">
+                    <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
+                    </svg>
+                    <span>Processing...</span>
+                  </template>
+                  <template v-else>
+                    <svg
+                      v-if="viewTarget?.isVerified"
+                      class="w-3.5 h-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M9 12H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-3.5 h-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M12 8V16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                      <path d="M8 12H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    <span>{{ viewTarget?.isVerified ? 'Disable' : 'Enable' }}</span>
+                  </template>
                 </button>
 
                 <!-- Edit -->
@@ -588,15 +574,37 @@
             </div>
           </div>
 
+          <!-- Position & Advisory Class -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-600 mb-1">Position</label>
+              <input
+                v-model="form.position"
+                type="text"
+                required
+                class="w-full rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-600 mb-1">Advisory Class</label>
+              <input
+                v-model="form.advisoryClass"
+                type="text"
+                class="w-full rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-900 capitalize focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
+                placeholder="e.g., BSCS 3A"
+              />
+            </div>
+          </div>
+
           <!-- RFID & Password -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-600 mb-1">RFID ID</label>
-              <div class="flex gap-2">
+              <div class="flex flex-wrap md:flex-nowrap gap-2">
                 <input
                   v-model="form.rfidId"
                   type="text"
-                  class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono bg-slate-50"
+                  class="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono bg-slate-50"
                   :class="detectedRfid ? 'bg-blue-50 border-blue-300' : ''"
                   placeholder="Tap RFID card or enter manually"
                   :disabled="true"
@@ -605,7 +613,7 @@
                   v-if="detectedRfid && !editTarget && !form.rfidId"
                   type="button"
                   @click="useDetectedRfid"
-                  class="px-3 py-2 rounded-lg bg-[#001740] text-white text-[11px] font-medium hover:bg-[#001740]/90 whitespace-nowrap shadow-sm"
+                  class="shrink-0 px-3 py-2 rounded-lg bg-[#001740] text-white text-[11px] font-medium hover:bg-[#001740]/90 whitespace-nowrap shadow-sm"
                 >
                   Use Detected
                 </button>
@@ -630,6 +638,17 @@
                 class="w-full rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
               />
               <p class="mt-1 text-[11px] text-slate-500">A verification code will be emailed to this professor.</p>
+
+              <div class="mt-4">
+                <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-600 mb-1">Confirm Password</label>
+                <input
+                  v-model="form.confirmPassword"
+                  type="password"
+                  required
+                  class="w-full rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
+                />
+                <p v-if="form.confirmPassword && form.password !== form.confirmPassword" class="mt-1 text-[11px] text-red-600">Passwords do not match.</p>
+              </div>
             </div>
           </div>
 
@@ -1067,7 +1086,7 @@ const showToast = (message, type = 'success') => {
 
 // Reactive data
 const professors = ref([])
-const loading = ref(false)
+const loading = ref(true)
 const query = ref("")
 const statusFilter = ref("")
 const showStatusDropdown = ref(false)
@@ -1131,8 +1150,11 @@ const form = ref({
   lastName: "",
   emailAddress: "",
   department: "CCS",
+  position: "",
+  advisoryClass: "",
   rfidId: "",
   password: "",
+  confirmPassword: "",
 })
 
 // Status filter options (copied style from Manage Users)
@@ -1403,12 +1425,17 @@ const confirmRfidAssignment = async () => {
 
 // Existing methods
 const fetchProfessors = async () => {
+  // Show skeleton only on first load (avoid flicker during polling)
+  const shouldShowSkeleton = professors.value.length === 0 && loading.value !== true
+  if (shouldShowSkeleton) loading.value = true
   try {
     const res = await api.get("/admin/professors")
     professors.value = res.data.professors || []
     console.log('🔄 Polled professors:', professors.value.length)
   } catch (e) {
     console.error("Failed to fetch professors", e)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -1446,6 +1473,37 @@ const closeViewModal = () => {
   viewTarget.value = null
 }
 
+// Spinner state for enable/disable action in View modal
+const togglingStatus = ref(false)
+
+// Enable/Disable professor account
+const toggleDisable = async (prof) => {
+  if (!prof || togglingStatus.value) return
+  try {
+    togglingStatus.value = true
+    const newStatus = !prof.isVerified
+    await api.patch(`/admin/users/${prof._id}`, { isVerified: newStatus })
+
+    // Update current modal target
+    if (viewTarget.value && viewTarget.value._id === prof._id) {
+      viewTarget.value = { ...viewTarget.value, isVerified: newStatus }
+    }
+
+    // Update list item
+    const idx = professors.value.findIndex(p => p._id === prof._id)
+    if (idx !== -1) {
+      professors.value[idx] = { ...professors.value[idx], isVerified: newStatus }
+    }
+
+    showToast(newStatus ? 'Professor enabled' : 'Professor disabled', 'success')
+  } catch (e) {
+    console.error('Failed to toggle professor status', e)
+    showToast('Failed to update status.', 'error')
+  } finally {
+    togglingStatus.value = false
+  }
+}
+
 const openAddModal = () => {
   editTarget.value = null
   form.value = {
@@ -1453,8 +1511,11 @@ const openAddModal = () => {
     lastName: "",
     emailAddress: "",
     department: "CCS",
+    position: "",
+    advisoryClass: "",
     rfidId: detectedRfid.value || "", // Pre-fill with detected RFID
     password: "",
+    confirmPassword: "",
   }
   showModal.value = true
 }
@@ -1465,9 +1526,12 @@ const openEditModal = (p) => {
     firstName: p.firstName || "",
     lastName: p.lastName || "",
     emailAddress: p.emailAddress || "",
-    department: p.facultyPosition || p.department || "",
+    department: p.department || "CCS",
+    position: p.facultyPosition || p.position || "",
+    advisoryClass: p.advisoryClass || "",
     rfidId: p.idNumber || "", // Use idNumber field from database
     password: "",
+    confirmPassword: "",
   }
   showModal.value = true
 }
@@ -1529,6 +1593,8 @@ const submitProfessor = async () => {
         lastName: toTitleCase(form.value.lastName),
         emailAddress: form.value.emailAddress,
         idNumber: form.value.rfidId,
+        facultyPosition: form.value.position,
+        advisoryClass: form.value.advisoryClass,
       }
       await api.patch(`/admin/users/${editTarget.value._id}`, payload)
       showModal.value = false
@@ -1537,6 +1603,12 @@ const submitProfessor = async () => {
       return
     }
     
+    // Validate confirm password on create
+    if (!form.value.password || form.value.password !== form.value.confirmPassword) {
+      alert('Passwords do not match. Please confirm the password correctly.')
+      return
+    }
+
     const payload = {
       role: "professor",
       emailAddress: form.value.emailAddress,
@@ -1545,7 +1617,9 @@ const submitProfessor = async () => {
       lastName: toTitleCase(form.value.lastName),
       idNumber: form.value.rfidId,
       contactNumber: "",
-      facultyPosition: form.value.department,
+      facultyPosition: form.value.position || form.value.department,
+      department: form.value.department || "CCS",
+      advisoryClass: form.value.advisoryClass,
     }
     await api.post("/admin/add-professor", payload)
     showModal.value = false
@@ -1553,7 +1627,8 @@ const submitProfessor = async () => {
     showToast('Professor created. A verification code has been sent to their email.', 'success')
   } catch (e) {
     console.error("Failed to submit professor", e)
-    showToast('Failed to submit professor.', 'error')
+    const msg = e?.response?.data?.message || 'Failed to submit professor.'
+    showToast(msg, 'error')
   } finally {
     savingProfessor.value = false
   }
@@ -1784,16 +1859,6 @@ const performDelete = async () => {
     showToast('Failed to delete professor.', 'error')
   } finally {
     deletingProfessor.value = false
-  }
-}
-
-const toggleDisable = async (p) => {
-  try {
-    await api.patch(`/admin/users/${p._id}`, { isVerified: !p.isVerified })
-    await fetchProfessors()
-  } catch (e) {
-    console.error("Failed to toggle account state", e)
-    alert("Failed to update account state")
   }
 }
 

@@ -1,38 +1,10 @@
 <template>
-  <div class="bg-white min-h-screen pb-28 md:pb-16 p-6 md:p-10">
-    <!-- Header -->
-    <div class="flex items-start justify-between relative">
-      <div>
-        <h1 class="text-4xl font-semibold text-gray-900">Notification</h1>
-        <p class="text-base text-gray-500">
-          You have 
-          <span class="text-[#F5C400]">{{ totalTodayCount }} notification{{ totalTodayCount !== 1 ? 's' : '' }}</span> 
-          today.
-        </p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="px-3 py-2 text-sm rounded-lg border hover:bg-gray-50" @click="toggleSelectMode">{{ selectMode ? 'Cancel' : 'Select' }}</button>
-        <button v-if="selectMode" class="px-3 py-2 text-sm rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="selectedIds.length===0 || deletingSelected" @click="deleteSelected">Delete Selected</button>
-        <button v-if="selectMode" class="px-3 py-2 text-sm rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="deletingAll" @click="deleteAll">Delete All</button>
-        <div class="relative" ref="menuRef">
-          <button class="p-2 rounded-full hover:bg-gray-100" aria-label="Filter" @click="toggleMenu">
-            <iconify-icon icon="mage:filter" class="text-2xl" />
-          </button>
-          <transition name="fade">
-            <div v-if="menuOpen" class="absolute right-0 mt-2 w-44 rounded-xl border border-gray-200 bg-white shadow-md overflow-hidden z-10">
-              <button @click="selectFilter(null)" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">All</button>
-              <button @click="selectFilter('today')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">Today</button>
-              <button @click="selectFilter('week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">This Week</button>
-            </div>
-          </transition>
-        </div>
-      </div>
-    </div>
-
+  <div class="bg-white min-h-screen pb-28 md:pb-16 py-4 md:p-4">
+    <!-- Header removed: controls are now in StudentNotificationsTopNav -->
     <div class="mt-2"></div>
-
+    <div class="px-0 md:px-6 py-4 min-h-0">
     <!-- Notifications List -->
-    <div class="mt-6 space-y-6">
+    <div class="mt-2 md:mt-6 space-y-6">
       <!-- Skeleton Loading -->
       <div v-if="loading" class="space-y-6 animate-pulse">
         <section>
@@ -72,11 +44,11 @@
               class="w-10 h-10 rounded-full object-cover flex-shrink-0"
             />
             <div class="flex-1">
-              <p class="text-gray-900" :class="{'font-semibold': !notification.read}">
+              <p class="text-[11px] sm:text-base text-gray-900" :class="{'font-semibold': !notification.read}">
                 {{ notification.title }}
               </p>
-              <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ formatTimeAgo(notification.createdAt) }}</p>
+              <p class="text-[10px] sm:text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+              <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatTimeAgo(notification.createdAt) }}</p>
             </div>
             <div class="flex-shrink-0">
               <button
@@ -112,11 +84,11 @@
               class="w-10 h-10 rounded-full object-cover flex-shrink-0"
             />
             <div class="flex-1">
-              <p class="text-gray-900" :class="{'font-semibold': !notification.read}">
+              <p class="text-[11px] sm:text-base text-gray-900" :class="{'font-semibold': !notification.read}">
                 {{ notification.title }}
               </p>
-              <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ formatTimeAgo(notification.createdAt) }}</p>
+              <p class="text-[10px] sm:text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+              <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatTimeAgo(notification.createdAt) }}</p>
             </div>
             <div class="flex-shrink-0">
               <button
@@ -152,11 +124,11 @@
               class="w-10 h-10 rounded-full object-cover flex-shrink-0"
             />
             <div class="flex-1">
-              <p class="text-gray-900" :class="{'font-semibold': !notification.read}">
+              <p class="text-[11px] sm:text-base text-gray-900" :class="{'font-semibold': !notification.read}">
                 {{ notification.title }}
               </p>
-              <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ formatDate(notification.createdAt) }}</p>
+              <p class="text-[10px] sm:text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+              <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatDate(notification.createdAt) }}</p>
             </div>
             <div class="flex-shrink-0">
               <button
@@ -173,12 +145,13 @@
       </section>
 
       <!-- Empty State -->
-      <div v-if="filteredNotifications.length === 0" class="text-center py-12">
-        <iconify-icon icon="mingcute:notification-off-line" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
-        <p class="text-gray-600">You currently have no notifications.</p>
+      <div v-if="filteredNotifications.length === 0" class="flex flex-col items-center justify-center w-full text-center py-16">
+        <iconify-icon icon="mingcute:notification-off-line" class="block mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3" />
+        <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-1 sm:mb-2">No notifications</h3>
+        <p class="text-xs sm:text-sm text-gray-600">You currently have no notifications.</p>
       </div>
       </div>
+    </div>
     </div>
 
     <!-- Delete Selected Confirmation Modal -->
@@ -219,14 +192,14 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import StudentTopNav from '@/components/StudentTopNav.vue'
+import { useRoute } from 'vue-router'
 import { useNotifications } from '@/composables/useNotifications'
 import api from '@/utils/api'
 
-const selectedType = ref(null)
+const route = useRoute()
+// Reflect filter from the top nav via query string (?filter=...)
+const selectedType = computed(() => route.query.filter ?? null)
 const loading = ref(true)
-const menuOpen = ref(false)
-const menuRef = ref(null)
 const { notifications, markAsRead } = useNotifications()
 const selectMode = ref(false)
 const selectedIds = ref([])
@@ -414,21 +387,15 @@ const totalTodayCount = computed(() => {
   return todayNotifications.value.length
 })
 
-// Filter menu functions
-function toggleMenu() {
-  menuOpen.value = !menuOpen.value
+// Events from StudentNotificationsTopNav (via window events)
+const handleToggleSelect = () => {
+  toggleSelectMode()
 }
-
-function selectFilter(val) {
-  selectedType.value = val
-  menuOpen.value = false
+const handleDeleteSelected = () => {
+  deleteSelected()
 }
-
-function onClickOutside(e) {
-  if (!menuRef.value) return
-  if (!menuRef.value.contains(e.target)) {
-    menuOpen.value = false
-  }
+const handleDeleteAll = () => {
+  deleteAll()
 }
 
 // Selection mode handlers
@@ -592,7 +559,9 @@ const initializeData = async () => {
 
 // ✅ On mount: load notifications
 onMounted(() => {
-  document.addEventListener('click', onClickOutside)
+  window.addEventListener('notif:toggleSelect', handleToggleSelect)
+  window.addEventListener('notif:deleteSelected', handleDeleteSelected)
+  window.addEventListener('notif:deleteAll', handleDeleteAll)
   
   // Initialize data and start polling
   initializeData().then(() => {
@@ -602,7 +571,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', onClickOutside)
+  window.removeEventListener('notif:toggleSelect', handleToggleSelect)
+  window.removeEventListener('notif:deleteSelected', handleDeleteSelected)
+  window.removeEventListener('notif:deleteAll', handleDeleteAll)
   // Clean up interval when component is destroyed
   stopPolling()
 })

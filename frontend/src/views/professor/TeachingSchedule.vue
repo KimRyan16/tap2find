@@ -1,18 +1,19 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <ProfessorTopNav :hide-actions="true" />
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
 
     <!-- Main Content: Calendar + Sidebar -->
-    <div class="px-4 md:px-6 py-4 min-h-0">
+    <div class="px-0 md:px-6 py-4 min-h-0">
       <div v-if="loadingSchedule" class="flex flex-col md:flex-row gap-6">
         <div class="inline-block min-w-full md:min-w-0 md:flex-1">
-          <div class="rounded-lg shadow-xl overflow-hidden p-4">
-            <div class="h-6 w-40 bg-gray-200 rounded animate-pulse mb-3"></div>
-            <div class="grid grid-cols-6 gap-2 mb-2">
-              <div class="h-8 bg-gray-200 rounded animate-pulse" v-for="n in 6" :key="`sk-h-`+n"></div>
-            </div>
-            <div class="space-y-2">
-              <div class="h-16 bg-gray-100 rounded animate-pulse" v-for="n in 6" :key="`sk-r-`+n"></div>
+          <div class="rounded-lg shadow-xl overflow-x-auto p-4">
+            <div class="min-w-[720px]">
+              <div class="h-6 w-40 bg-gray-200 rounded animate-pulse mb-3"></div>
+              <div class="grid grid-cols-6 gap-2 mb-2">
+                <div class="h-8 bg-gray-200 rounded animate-pulse" v-for="n in 6" :key="`sk-h-`+n"></div>
+              </div>
+              <div class="space-y-2">
+                <div class="h-16 bg-gray-100 rounded animate-pulse" v-for="n in 6" :key="`sk-r-`+n"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -35,18 +36,19 @@
       <div v-else class="flex flex-col md:flex-row gap-6">
         <!-- Calendar Section -->
         <div class="inline-block min-w-full md:min-w-0 md:flex-1">
-          <div class="rounded-lg shadow-xl overflow-hidden">
+          <div class="rounded-lg shadow-xl overflow-x-auto">
+          <div class="min-w-[720px]">
           <!-- Header Row -->
           <div class="flex">
             <!-- Time Column Header -->
             <div class="w-40 flex-shrink-0 bg-gray-300 border border-gray-300 p-3 flex items-center justify-center">
-              <div class="text-sm font-bold text-gray-700 text-center">TIME</div>
+              <div class="text-xs md:text-sm font-bold text-gray-700 text-center">TIME</div>
             </div>
             
             <!-- Day Headers -->
             <div class="flex flex-1">
               <div v-for="day in days" :key="day" class="flex-1 min-w-24 bg-gray-300 border border-gray-300 p-3">
-                <div class="text-sm font-bold text-gray-700 text-center">{{ day }}</div>
+                <div class="text-xs md:text-sm font-bold text-gray-700 text-center">{{ day }}</div>
               </div>
             </div>
           </div>
@@ -56,7 +58,7 @@
             <!-- Time Column -->
             <div class="w-40 flex-shrink-0 border-l border-r border-gray-300">
               <div v-for="(slot, index) in timeSlots" :key="index" class="h-16 border-b border-gray-300 p-2 flex items-center justify-center">
-                <div class="text-sm font-medium text-gray-900 text-center">{{ slot }}</div>
+                <div class="text-xs md:text-sm font-medium text-gray-900 text-center">{{ slot }}</div>
               </div>
             </div>
 
@@ -77,12 +79,13 @@
                     <button @click.stop="openEditModal(course)" class="px-2 py-0.5 rounded bg-white/80 text-gray-800 text-xs border border-gray-200 hover:bg-white">Edit</button>
                     <button @click.stop="openDeleteModal(course)" class="px-2 py-0.5 rounded bg-white/80 text-red-700 text-xs border border-red-200 hover:bg-white">Delete</button>
                   </div>
-                  <div class="text-lg font-semibold text-gray-900 leading-tight">{{ course.name }}</div>
-                  <div class="text-xs font-medium text-gray-700 leading-tight">{{ course.room }}</div>
-                  <div class="text-xs font-medium text-gray-700 leading-tight">{{ course.location }}</div>
+                  <div class="text-base md:text-lg font-semibold text-gray-900 leading-tight">{{ course.name }}</div>
+                  <div class="text-[10px] md:text-xs font-medium text-gray-700 leading-tight">{{ course.room }}</div>
+                  <div class="text-[10px] md:text-xs font-medium text-gray-700 leading-tight">{{ course.location }}</div>
                 </div>
               </div>
             </div>
+          </div>
           </div>
           </div>
         </div>
@@ -97,12 +100,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
               </svg>
             </span>
-            <span class="font-semibold text-lg">Add Class Schedule</span>
+            <span class="font-semibold text-base md:text-lg">Add Class Schedule</span>
           </button>
 
           <!-- Reminder Card -->
           <div class="bg-white rounded-2xl border border-gray-200  p-4 shadow">
-            <div class="font-bold text-gray-900 mb-3 text-xl">Your Schedule Today</div>
+            <div class="font-bold text-gray-900 mb-3 text-lg md:text-xl">Your Schedule Today</div>
             <div v-if="todayCourses.length === 0" class="text-sm text-gray-500">No classes scheduled today.</div>
             <ul v-else class="space-y-3">
               <li v-for="(course, idx) in todayCourses" :key="`today-${course.id}`" class="flex items-start gap-3">
@@ -110,8 +113,8 @@
                   {{ course.location }}
                 </div>
                 <div class="flex-1">
-                  <div class="text-base font-semibold text-gray-900">{{ getTimeRange(course.startSlot, course.duration) }}</div>
-                  <div class="text-xs font-medium text-gray-700">{{ course.name }} | {{ course.room }}</div>
+                  <div class="text-sm md:text-base font-semibold text-gray-900">{{ getTimeRange(course.startSlot, course.duration) }}</div>
+                  <div class="text-[11px] md:text-xs font-medium text-gray-700">{{ course.name }} | {{ course.room }}</div>
                 </div>
               </li>
             </ul>
@@ -290,7 +293,6 @@
 
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue'
-import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
 import api from "@/utils/api"
 
 // Toast helper (bottom-right)

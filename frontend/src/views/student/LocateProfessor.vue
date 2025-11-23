@@ -1,10 +1,8 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <!-- Top Bar with Notifications and Profile -->
-    <StudentTopNav />
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
 
     <!-- Content Division -->
-    <div class="px-4 md:px-6 py-4 min-h-0">
+    <div class="px-0 md:px-6 py-4 min-h-0">
       <div v-if="isLoading" class="space-y-4 animate-pulse">
         <!-- Search bar skeleton -->
         <div class="mb-4">
@@ -42,7 +40,7 @@
         <div class="mb-4">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
-              <div class="relative flex gap-2">
+              <div class="relative flex items-center gap-2">
                 <div class="relative">
                   <iconify-icon icon="fluent:search-16-filled" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
@@ -51,7 +49,7 @@
                     @focus="showSearchDropdown = true"
                     @blur="hideSearchDropdown"
                     placeholder="Search professor name..."
-                    class="w-96 pl-10 pr-4 py-2 rounded-full bg-gray-50 focus:outline-none"
+                    class="w-full md:w-96 pl-10 pr-3 py-2 rounded-xl bg-white text-sm border border-gray-300 focus:outline-none focus:ring-0 focus:border-gray-300 placeholder:text-xs md:placeholder:text-sm"
                   />
                 
                 <!-- Search Dropdown -->
@@ -74,8 +72,11 @@
                       class="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                     >
                       <!-- Profile Picture -->
-                      <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mr-3">
-                        <span class="text-white text-sm font-bold">{{ professor.name.split(' ').map(n => n[0]).join('') }}</span>
+                      <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center mr-3 ring-2 ring-white shadow">
+                        <img v-if="professor.avatarUrl" :src="professor.avatarUrl" alt="avatar" class="w-full h-full object-cover" />
+                        <span v-else class="w-full h-full grid place-items-center bg-blue-500 text-white text-sm font-bold">
+                          {{ professor.name.split(' ').map(n => n[0]).join('') }}
+                        </span>
                       </div>
                       
                       <!-- Professor Info -->
@@ -94,18 +95,84 @@
                   </div>
                 </transition>
               </div>
-                
-                <!-- Filter Icon -->
-                <div class="flex items-center">
-                  <iconify-icon
-                    @click="toggleFilterSlider"
-                    icon="mage:filter-fill"
-                    class="text-xl cursor-pointer transition-colors"
-                    :class="(showFilterSlider || selectedYearLevel !== '' || selectedStatus !== null) ? 'text-[#102A71]' : 'text-gray-600'"
-                  ></iconify-icon>
-                </div>
+              
+              <!-- Filter Icon -->
+              <div class="flex items-center ml-auto shrink-0">
+                <iconify-icon
+                  @click="toggleFilterSlider"
+                  icon="mage:filter-fill"
+                  class="text-lg md:text-xl cursor-pointer transition-colors"
+                  :class="(showFilterSlider || selectedYearLevel !== '' || selectedStatus !== null) ? 'text-[#102A71]' : 'text-gray-600'"
+                ></iconify-icon>
               </div>
             </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Bottom Sheet (small screens only) -->
+        <div
+          v-if="showFilterSlider"
+          class="md:hidden fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl z-[1001] max-h-[85vh] overflow-y-auto"
+        >
+          <!-- Header (mobile) -->
+          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 sticky top-0 bg-[#001740] rounded-t-2xl">
+            <h2 class="text-base text-white font-semibold">Filter</h2>
+          </div>
+
+          <!-- Content (mobile) -->
+          <div class="px-4 py-4 pb-24">
+            <!-- Year Level Filter -->
+            <div class="mb-6">
+              <h3 class="text-sm font-semibold mb-3">Year Level</h3>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="option in yearLevelOptions"
+                  :key="option.value"
+                  @click="selectYearLevel(option.value)"
+                  class="px-3 py-2 rounded-lg transition-colors text-sm"
+                  :class="selectedYearLevel === option.value
+                    ? 'text-[#102A71] border border-[#102A71] bg-white'
+                    : 'border border-transparent bg-gray-50 text-gray-500 hover:bg-gray-50'"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+              <h3 class="text-sm font-semibold mb-3">Status</h3>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="status in statusOptions"
+                  :key="status.value"
+                  @click="selectStatusFilter(status.value)"
+                  class="px-3 py-2 rounded-lg transition-colors text-sm"
+                  :class="selectedStatus === status.value
+                    ? 'text-[#102A71] border border-[#102A71] bg-white'
+                    : 'border border-transparent bg-gray-50 text-gray-500 hover:bg-gray-50'"
+                >
+                  {{ status.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Buttons (mobile) -->
+          <div class="sticky bottom-0 left-0 right-0 bg-white px-4 py-3 flex gap-3 border-t z-10">
+            <button
+              @click="toggleFilterSlider"
+              class="flex-1 px-4 py-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors text-sm"
+            >
+              Back
+            </button>
+            <button
+              @click="applyFilters"
+              class="flex-1 px-4 py-2 bg-[#F5C400] text-white rounded-lg font-medium hover:bg-[#F5C400]/80 transition-colors text-sm"
+            >
+              Apply
+            </button>
           </div>
         </div>
 
@@ -128,56 +195,56 @@
         </div>
 
         <!-- Results -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
           <div
             v-for="professor in filteredProfessors"
             :key="professor.id"
             :data-professor-id="professor.id"
-            class="bg-gray-50 rounded-lg p-4 transition-shadow"
+            class="bg-gray-50 rounded-lg p-2 md:p-4 transition-shadow"
           >
-            <div class="flex items-center gap-4">
+            <div class="grid grid-cols-[auto,1fr] items-stretch gap-2 md:gap-4">
               <!-- Professor Avatar -->
-              <div class="flex-shrink-0 flex items-center justify-center">
-                <div class="w-32 h-32 bg-gradient-to-br from-blue-300 to-blue-500 rounded-lg flex items-center justify-center">
-                  <span class="text-white text-2xl font-bold">{{ professor.name.split(' ').map(n => n[0]).join('') }}</span>
+              <div class="flex items-center justify-center">
+                <div class="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-white shadow">
+                  <img v-if="professor.avatarUrl" :src="professor.avatarUrl" alt="avatar" class="w-full h-full object-cover" />
+                  <span v-else class="w-full h-full grid place-items-center bg-blue-500 text-white text-[11px] md:text-base lg:text-lg font-bold">
+                    {{ professor.name.split(' ').map(n => n[0]).join('') }}
+                  </span>
+                </div>
               </div>
-            </div>
-            
+          
               <!-- Professor Info -->
-              <div class="flex-1 flex flex-col min-w-0">
+              <div class="flex-1 flex flex-col min-w-0 whitespace-normal space-y-0.5 md:space-y-1">
                 <!-- Name -->
-                <h3 class="font-medium text-gray-900 text-xl truncate">{{ professor.name }}</h3>
+                <h3 class="font-medium text-gray-900 text-[10px] md:text-sm lg:text-base">{{ professor.name }}</h3>
                 
                 <!-- Course/Department -->
-                <p class="text-sm text-gray-600 mb-2 truncate">{{ professor.department }}</p>
+                <p class="text-[9px] md:text-sm text-gray-600 mb-0 md:mb-0">{{ professor.department }}</p>
                 
                 <!-- Status Badge -->
-                <span class="px-2 py-1 rounded-lg text-xs font-medium w-fit inline-flex items-center gap-1"
+                <span class="px-1 py-0.5 md:px-2 md:py-1 rounded-lg text-[8px] md:text-xs font-medium w-fit inline-flex items-center gap-1"
                   :class="getStatusBadgeClass(professor)"
                 >
-                  <iconify-icon :icon="getStatusIcon(professor)" class="h-3 w-3" />
+                  <iconify-icon :icon="getStatusIcon(professor)" class="h-3 w-3 md:h-3 md:w-3" />
                   <span>{{ getStatusDisplayText(professor) }}</span>
                 </span>
                 
                 <!-- Location and Send Inquiry Button -->
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center text-sm text-gray-400">
-                    <iconify-icon icon="lucide:map-pin" class="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span class="truncate" :title="professor.currentRoom">
-                      {{ professor.currentRoom }}
-                      <span v-if="professor.hasCurrentSchedule" class="text-blue-500 ml-1">• In Class</span>
-                    </span>
+                <div class="flex items-center gap-3 w-full mt-0.5 md:mt-1">
+                  <div class="flex items-center text-[8px] md:text-sm text-gray-400">
+                    <iconify-icon icon="lucide:map-pin" class="h-3 w-3 mr-1 flex-shrink-0 md:h-4 md:w-4" />
+                    <span>{{ professor.currentRoom }}</span>
                   </div>
                   
                   <button
                     @click="contactProfessor(professor)"
                     :disabled="!isProfessorAvailable(professor)"
-                    class="py-2 px-4 rounded-lg text-sm flex items-center justify-center flex-shrink-0 transition-all"
+                    class="ml-auto py-0.5 px-1.5 md:py-2 md:px-3 rounded-lg text-[8px] md:text-sm flex items-center justify-center flex-shrink-0 transition-all"
                     :class="isProfessorAvailable(professor)
                       ? 'bg-[#102A71] text-white hover:bg-[#102A71]/80'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                   >
-                    <iconify-icon icon="lucide:send" class="mr-2 h-4 w-4" />
+                    <iconify-icon icon="lucide:send" class="mr-1.5 h-3 w-3 md:mr-2" />
                     {{ isProfessorAvailable(professor) ? 'Send Inquiry' : 'Not Available' }}
                   </button>
 
@@ -201,7 +268,7 @@
       <div
         v-if="showFilterSlider"
         @click="toggleFilterSlider"
-        class="fixed inset-0 bg-black/50 z-40"
+        class="fixed inset-0 bg-black/50 z-[1000]"
       ></div>
     </transition>
 
@@ -228,7 +295,7 @@
     >
       <div
         v-if="showFilterSlider"
-        class="fixed top-0 bottom-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
+        class="hidden md:block fixed top-0 bottom-0 right-0 w-full max-w-md bg-white shadow-2xl z-[1001] overflow-y-auto"
       >
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-[#001740]">
@@ -275,7 +342,7 @@
       </div>
 
         <!-- Footer Buttons -->
-        <div class="fixed bottom-0 right-0 max-w-md w-full  bg-white px-6 py-4 flex gap-3 z-10">
+        <div class="hidden md:flex fixed bottom-0 right-0 max-w-md w-full  bg-white px-6 py-4 flex gap-3 z-[1002]">
           <button
             @click="toggleFilterSlider"
             class="flex-1 px-4 py-3  rounded-lg  bg-gray-50 text-gray-600 hover:bg-gray-50 transition-colors"
@@ -312,59 +379,59 @@
         >
           <div class="bg-white rounded-xl w-full max-w-md">
             <!-- Modal Header -->
-            <div class="bg-white border-b border-gray-200 rounded-t-xl px-6 py-4 flex items-center justify-between">
-              <h3 class="text-xl font-bold text-gray-900">Send Inquiry</h3>
+            <div class="bg-white border-b border-gray-200 rounded-t-xl px-4 py-3 md:px-6 md:py-4 flex items-center justify-between">
+              <h3 class="text-base md:text-xl font-bold text-gray-900">Send Inquiry</h3>
             </div>
 
             <!-- Modal Body -->
-            <div class="px-6 py-4">
-              <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">To:</label>
-                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">
-                  <p class="font-medium text-gray-900">{{ selectedProfessor?.name }}</p>
-                  <p class="text-sm text-gray-600">{{ selectedProfessor?.department }}</p>
+            <div class="px-4 py-3 md:px-6 md:py-4">
+              <div class="mb-3 md:mb-4">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">To:</label>
+                <div class="px-2.5 py-2 md:px-3 md:py-2 bg-gray-50 border border-gray-300 rounded-lg">
+                  <p class="text-sm md:text-base font-medium text-gray-900">{{ selectedProfessor?.name }}</p>
+                  <p class="text-xs md:text-sm text-gray-600">{{ selectedProfessor?.department }}</p>
                 </div>
               </div>
 
-              <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Subject:</label>
+              <div class="mb-3 md:mb-4">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">Subject:</label>
                 <input
                   v-model="inquiryForm.subject"
                   type="text"
                   placeholder="Enter subject..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full px-3 py-2 md:py-2 border border-gray-300 rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
-              <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Message:</label>
+              <div class="mb-3 md:mb-4">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">Message:</label>
                 <textarea
                   v-model="inquiryForm.message"
-                  rows="5"
+                  rows="4"
                   placeholder="Type your message here..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  class="w-full px-3 py-2 md:py-2 border border-gray-300 rounded-lg text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 ></textarea>
               </div>
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-6 py-4  flex justify-end space-x-3">
+            <div class="px-4 py-3 md:px-6 md:py-4 w-full grid grid-cols-2 gap-2 md:flex md:justify-end md:space-x-3">
               <button
                 @click="closeInquiryModal"
-                class="bg-gray-50 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                class="w-full px-2.5 py-1.5 md:px-4 md:py-2 rounded-md md:rounded-lg text-xs md:text-base text-gray-700 hover:bg-gray-200 bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 @click="submitInquiry"
                 :disabled="isSending"
-                class="px-4 py-2 bg-[#102A71] text-white rounded-lg hover:bg-[#102A71]/90 transition-colors flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
+                class="w-full px-2.5 py-1.5 md:px-4 md:py-2 bg-[#102A71] text-white rounded-md md:rounded-lg text-xs md:text-base hover:bg-[#102A71]/90 transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <span v-if="isSending" class="mr-2 inline-flex items-center">
-                  <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                <span v-if="isSending" class="mr-1.5 md:mr-2 inline-flex items-center">
+                  <span class="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                 </span>
-                <span v-else class="mr-2">
-                  <iconify-icon icon="lucide:send" class="h-4 w-4" />
+                <span v-else class="mr-1.5 md:mr-2">
+                  <iconify-icon icon="lucide:send" class="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </span>
                 <span>{{ isSending ? 'Sending...' : 'Send Inquiry' }}</span>
               </button>
@@ -572,7 +639,6 @@ const submitInquiry = async () => {
 
     if (response.data.success) {
       console.log("✅ Inquiry sent successfully:", response.data)
-      alert("✅ Inquiry sent successfully!")
 
       // 🧠 Send notification to the professor
       await api.post("/notification/add-notification", {
@@ -590,6 +656,8 @@ const submitInquiry = async () => {
       inquiryForm.value.subject = ''
       inquiryForm.value.message = ''
       showInquiryModal.value = false
+      // Show success animation overlay
+      showAnimationModal.value = true
       isSending.value = false
     } else {
       console.error("❌ Inquiry failed:", response.data)
@@ -631,11 +699,8 @@ const viewProfile = (professor) => {
   console.log('Viewing profile:', professor.name)
 }
 
-// Updated status methods to handle weekend display
+// Updated status methods (weekend no longer forces Not Available)
 const getStatusDisplayText = (professor) => {
-  if (professor.isWeekend) {
-    return "Not Available (Weekend)"
-  }
   if (professor.hasCurrentSchedule) {
     return "In Class"
   }
@@ -652,7 +717,6 @@ const getStatusText = (status) => {
 }
 
 const getStatusIcon = (professor) => {
-  if (professor.isWeekend) return 'lucide:calendar-x'
   if (professor.hasCurrentSchedule) return 'lucide:book-open'
   if (professor.available === 'available') return 'lucide:circle-check'
   if (professor.available === 'busy') return 'lucide:clock'
@@ -660,9 +724,6 @@ const getStatusIcon = (professor) => {
 }
 
 const getStatusBadgeClass = (professor) => {
-  if (professor.isWeekend) {
-    return 'bg-gray-100 text-gray-700'
-  }
   if (professor.hasCurrentSchedule) {
     return 'bg-blue-100 text-blue-700'
   }
@@ -676,9 +737,6 @@ const getStatusBadgeClass = (professor) => {
 }
 
 const getStatusDotClass = (professor) => {
-  if (professor.isWeekend) {
-    return 'bg-gray-500'
-  }
   if (professor.hasCurrentSchedule) {
     return 'bg-blue-500'
   }
@@ -692,9 +750,8 @@ const getStatusDotClass = (professor) => {
 }
 
 const isProfessorAvailable = (professor) => {
-  // Professor is only available if it's not weekend AND 
-  // they don't have current schedule AND their status is 'available'
-  return !professor.isWeekend && !professor.hasCurrentSchedule && professor.available === 'available'
+  // Professor is available if they don't have current schedule and status is 'available'
+  return !professor.hasCurrentSchedule && professor.available === 'available'
 }
 
 // ==============================

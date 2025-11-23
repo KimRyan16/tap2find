@@ -123,16 +123,6 @@
             </button>
             <button
               type="button"
-              @click="activeSection = 'academic'"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium border bg-white shadow-sm transition-colors"
-              :class="activeSection === 'academic'
-                ? 'border-[#001740] bg-[#001740]/5 text-[#001740]'
-                : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-            >
-              <span>Academic information</span>
-            </button>
-            <button
-              type="button"
               @click="activeSection = 'contact'"
               class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium border bg-white shadow-sm transition-colors"
               :class="activeSection === 'contact'
@@ -187,55 +177,7 @@
               </div>
             </div>
 
-            <!-- Academic / school information -->
-            <div v-else-if="activeSection === 'academic'" class="space-y-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Academic information</p>
-              <div class="grid grid-cols-1 gap-4 text-sm">
-                <div>
-                  <div class="text-xs font-medium text-slate-500 mb-0.5">Program</div>
-                  <input
-                    v-model="form.program"
-                    type="text"
-                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
-                  />
-                </div>
-                <div>
-                  <div class="text-xs font-medium text-slate-500 mb-0.5">Faculty Position</div>
-                  <input
-                    v-model="form.facultyPosition"
-                    type="text"
-                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
-                  />
-                </div>
-
-                <div>
-                  <div class="text-xs font-medium text-slate-500 mb-0.5">ID Number</div>
-                  <input
-                    v-model="form.idNumber"
-                    type="text"
-                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740] font-mono"
-                  />
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <div class="text-xs font-medium text-slate-500 mb-0.5">Year Level</div>
-                    <input
-                      v-model="form.yearLevel"
-                      type="text"
-                      class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
-                    />
-                  </div>
-                  <div>
-                    <div class="text-xs font-medium text-slate-500 mb-0.5">Section</div>
-                    <input
-                      v-model="form.section"
-                      type="text"
-                      class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001740]/30 focus:border-[#001740]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            
 
             <!-- Contact information -->
             <div v-else class="space-y-4">

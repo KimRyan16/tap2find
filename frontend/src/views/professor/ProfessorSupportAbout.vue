@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <div class="px-4 md:px-6 pt-8">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8">
       <div class="mb-4">
         <button @click="goBack" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 ">
           <iconify-icon icon="ion:chevron-back" class="text-base" />

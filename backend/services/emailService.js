@@ -116,10 +116,10 @@ const sendEmail = async (to, subject, html) => {
 // Send notification emails based on notification type
 export const sendNotificationEmails = async (notificationData) => {
   try {
-    const { title, message, type, studentId, professorId, isGeneral = false, targetRole = null } = notificationData;
+    const { title, message, type, studentId, professorId, isGeneral = false, targetRole = null, emailHtml: customEmailHtml = null, subjectOverride = null } = notificationData;
 
     let recipients = [];
-    let emailSubject = `Tap2Find Notification: ${title}`;
+    let emailSubject = subjectOverride || `Tap2Find Notification: ${title}`;
 
     // Determine recipients based on notification type
     if (isGeneral) {
@@ -147,7 +147,7 @@ export const sendNotificationEmails = async (notificationData) => {
 
     // Send emails to all recipients
     const emailPromises = recipients.map(recipient => {
-      const emailHtml = getEmailTemplate(title, message, type);
+      const emailHtml = customEmailHtml || getEmailTemplate(title, message, type);
       return sendEmail(recipient.emailAddress, emailSubject, emailHtml);
     });
 

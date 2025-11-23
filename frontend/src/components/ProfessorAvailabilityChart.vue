@@ -1,8 +1,8 @@
 <template>
   <div class="w-full h-full flex flex-col items-center p-2">
     <div class="flex flex-col items-center w-full p-2 sm:p-4 text-white">
-      <h2 class="text-base font-semibold">Professor Availability</h2>
-      <span class="text-xs font-medium text-white/80 mb-8">{{ currentDay }}</span>
+      <h2 class="text-base font-semibold -mt-2">Professor Availability</h2>
+      <span class="text-xs font-medium text-white/80 mb-6">{{ currentDay }}</span>
       
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center h-72">
@@ -18,7 +18,7 @@
       </div>
 
       <!-- Chart Container with relative positioning -->
-      <div v-else class="relative flex flex-col w-full mt-2">
+      <div v-else class="relative flex flex-col w-full mt-1">
         <!-- Current Time Indicator Line - Positioned absolutely within chart container -->
         <div 
           v-if="hasCurrentTimeData"
@@ -109,9 +109,8 @@
       </div>
 
       <!-- Data Source Info -->
-      <div class="mt-4 text-xs text-white/70 text-center">
+      <div class="mt-2 text-xs text-white/70 text-center">
         <div>Data based on professor schedules and real-time status</div>
-        <div v-if="isWeekend" class="text-yellow-300 mt-1">Weekend: All professors marked as Not Available</div>
       </div>
 
     </div>

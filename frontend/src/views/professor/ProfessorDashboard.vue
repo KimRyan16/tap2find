@@ -1,9 +1,8 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <ProfessorTopNav />
-    <div class="px-4 md:px-6 py-4 min-h-0">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8 min-h-0">
       <div class="space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-xl bg-gray-50  p-5 ">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-xl bg-gray-100 p-4 md:p-5 ">
            <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full" :class="statusDotClass"></div>
@@ -15,11 +14,11 @@
           <!-- Removed change status dropdown -->
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Statistics Cards (align with ManageStudentConcerns) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <!-- Skeletons -->
           <template v-if="loading">
-            <div class="rounded-xl shadow p-5">
+            <div class="rounded-xl shadow p-4 md:p-5">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-gray-200 animate-pulse"></div>
                 <div class="flex-1 space-y-2">
@@ -54,39 +53,30 @@
                 <Icon icon="material-symbols:today" class="w-5 h-5" />
               </div>
               <div>
-                <div class="text-gray-600">Today's Concern</div>
-                <div class="text-2xl font-bold">{{ statistics.today }}</div>
-                <div class="text-xs text-gray-400" v-if="statistics.today > 0">
-                  {{ getTodayComparisonText() }}
-                </div>
+                <div class="text-sm text-gray-600">Total Concerns</div>
+                <div class="text-xl sm:text-2xl font-bold">{{ statistics.total }}</div>
               </div>
             </div>
           </div>
-          <div class="rounded-xl shadow p-5">
+          <div class="rounded-xl shadow p-4 md:p-5">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 grid place-items-center">
                 <Icon icon="formkit:week" class="w-5 h-5" />
               </div>
               <div>
-                <div class="text-gray-600">This Week's Concern</div>
-                <div class="text-2xl font-bold">{{ statistics.thisWeek }}</div>
-                <div class="text-xs text-gray-400" v-if="statistics.thisWeek > 0">
-                  {{ getWeekPendingText() }}
-                </div>
+                <div class="text-sm text-gray-600">Pending</div>
+                <div class="text-xl sm:text-2xl font-bold">{{ statistics.pending }}</div>
               </div>
             </div>
           </div>
-          <div class="rounded-xl shadow p-5">
+          <div class="rounded-xl shadow p-4 md:p-5">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg bg-green-100 text-green-600 grid place-items-center">
                 <Icon icon="pajamas:task-done" class="w-5 h-5" />
               </div>
               <div>
-                <div class="text-gray-600">Resolved</div>
-                <div class="text-2xl font-bold">{{ statistics.resolved }}</div>
-                <div class="text-xs text-gray-400" v-if="statistics.thisWeek > 0">
-                  {{ getResolutionRate() }}% resolution rate
-                </div>
+                <div class="text-sm text-gray-600">Resolved</div>
+                <div class="text-xl sm:text-2xl font-bold">{{ statistics.resolved }}</div>
               </div>
             </div>
           </div>
@@ -95,17 +85,17 @@
 
         <!-- Recent Student Concerns -->
         <div class="rounded-2xl shadow">
-          <div class="px-5 pt-5">
-            <div class="text-xl font-semibold">Recent Student Concerns</div>
-            <div class="text-sm text-gray-500">
+          <div class="p-4 md:p-5">
+            <div class="text-lg sm:text-xl font-semibold">Recent Student Concerns</div>
+            <div class="text-xs sm:text-sm text-gray-500">
               <span v-if="loading">Loading concerns...</span>
               <span v-else>You have {{ recentConcerns.length }} recent concerns</span>
             </div>
           </div>
-          <div class="mt-3">
+          <div class="mt-1 md:mt-3">
             <!-- Skeleton list -->
             <div v-if="loading" class="divide-y divide-gray-200">
-              <div v-for="n in 4" :key="`sk-rc-`+n" class="flex items-center justify-between gap-3 px-5 py-3">
+              <div v-for="n in 4" :key="`sk-rc-`+n" class="flex items-center justify-between gap-3 px-4 md:px-5 py-3">
                 <div class="flex items-start gap-3 flex-1">
                   <div class="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
                   <div class="flex-1">
@@ -117,27 +107,30 @@
                 </div>
               </div>
             </div>
-            <div
-              v-for="(item, idx) in recentConcerns"
-              :key="item.id"
-              class="relative flex items-center justify-between gap-3 px-5 py-3 border-t border-gray-200">
-              <div class="flex items-start gap-3 flex-1">
-                <div class="w-9 h-9 rounded-full bg-orange-200 text-orange-700 grid place-items-center font-bold">
-                  {{ item.initials }}
-                </div>
-                <div class="flex-1">
-                  <div class="font-semibold">{{ item.name }}</div>
-                  <div class="text-sm text-gray-500">{{ item.subject }}</div>
-                  <div class="text-xs text-gray-400 mt-1">{{ formatDate(item.createdAt) }}</div>
-                </div>
-                <div :class="['px-2 py-1 rounded-full text-xs font-medium', getStatusClass(item.status)]">
-                  {{ getStatusText(item.status) }}
+            <template v-else>
+              <div
+                v-for="(item, idx) in recentConcerns"
+                :key="item.id"
+                class="relative flex items-center justify-between gap-3 px-4 md:px-5 py-3 border-t border-gray-200">
+                <div class="flex items-start gap-3 flex-1">
+                  <div class="w-9 h-9 rounded-full overflow-hidden bg-orange-200 text-orange-700 grid place-items-center font-bold">
+                    <img v-if="item.avatarUrl" :src="item.avatarUrl" alt="avatar" class="w-full h-full object-cover" />
+                    <span v-else>{{ item.initials }}</span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-sm sm:text-base font-semibold">{{ item.name }}</div>
+                    <div class="text-xs sm:text-sm text-gray-500">{{ item.subject }}</div>
+                    <div class="text-[11px] sm:text-xs text-gray-400 mt-1">{{ formatDate(item.createdAt) }}</div>
+                  </div>
+                  <div :class="['px-2 py-1 rounded-full text-xs font-medium', getStatusClass(item.status)]">
+                    {{ getStatusText(item.status) }}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div v-if="recentConcerns.length === 0 && !loading" class="px-5 py-8 text-center text-gray-500">
-              No recent concerns found
-            </div>
+              <div v-if="recentConcerns.length === 0" class="px-4 md:px-5 py-8 text-center text-gray-500 text-sm">
+                No recent concerns found
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -148,11 +141,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
-import ProfessorTopNav from '@/components/ProfessorTopNav.vue'
 import api from '@/utils/api'
 
 const openMenuId = ref(null)
 const concerns = ref([])
+const allConcerns = ref([])
 const recentConcerns = ref([])
 const loading = ref(false)
 const pollInterval = ref(null) // Added for polling
@@ -167,9 +160,11 @@ const user = ref({
 })
 
 const statistics = ref({
+  total: 0,
+  pending: 0,
+  resolved: 0,
   today: 0,
   thisWeek: 0,
-  resolved: 0
 })
 
 // Status computed properties
@@ -222,30 +217,70 @@ const fetchCurrentUserStatus = async () => {
   }
 }
 
-// Fetch statistics for the professor
-const fetchStatistics = async () => {
+// Fetch all concerns and compute statistics (align with ManageStudentConcerns approach)
+const fetchAllConcernsAndComputeStats = async () => {
   try {
     const professorId = user.value.id
     if (!professorId) {
-      console.error('No professorId found for statistics')
+      console.error('No professorId found for concerns')
       return
     }
 
-    console.log('Fetching statistics for professor:', professorId)
-    
-    const response = await api.get('/professors/statistics', {
-      params: { professorId }
+    const response = await api.get('/professors/concerns', {
+      params: { professorId, page: 1, limit: 500 }
     })
-    
-    console.log('Statistics response:', response.data)
-    
+
     if (response.data.success) {
-      statistics.value = response.data.data
+      allConcerns.value = (response.data.data.inquiries || []).map(inquiry => ({
+        id: inquiry.id || inquiry._id,
+        name: inquiry.name,
+        email: inquiry.email,
+        initials: inquiry.initials,
+        subject: inquiry.subject,
+        message: inquiry.message,
+        status: inquiry.status || 'pending',
+        createdAt: inquiry.createdAt,
+        updatedAt: inquiry.updatedAt,
+        yearLevel: inquiry.yearLevel || 'Not specified',
+        section: inquiry.section || '',
+        studentId: inquiry.studentId
+      }))
+      computeStatisticsFromConcerns()
     }
   } catch (error) {
-    console.error('Error fetching statistics:', error)
+    console.error('Error fetching concerns for stats:', error)
     console.error('Error details:', error.response?.data)
   }
+}
+
+const isSameDay = (d) => {
+  const x = new Date(d)
+  const now = new Date()
+  return x.getFullYear() === now.getFullYear() && x.getMonth() === now.getMonth() && x.getDate() === now.getDate()
+}
+
+const isInThisWeek = (d) => {
+  const date = new Date(d)
+  const now = new Date()
+  // set to start of week (Mon)
+  const day = now.getDay() || 7
+  const first = new Date(now)
+  first.setDate(now.getDate() - day + 1)
+  first.setHours(0,0,0,0)
+  const last = new Date(first)
+  last.setDate(first.getDate() + 6)
+  last.setHours(23,59,59,999)
+  return date >= first && date <= last
+}
+
+const computeStatisticsFromConcerns = () => {
+  const list = allConcerns.value || []
+  const total = list.length
+  const pending = list.filter(c => c.status === 'pending').length
+  const resolved = list.filter(c => c.status === 'resolved').length
+  const today = list.filter(c => c.createdAt && isSameDay(c.createdAt)).length
+  const thisWeek = list.filter(c => c.createdAt && isInThisWeek(c.createdAt)).length
+  statistics.value = { total, pending, resolved, today, thisWeek }
 }
 
 // Fetch recent concerns/inquiries
@@ -273,6 +308,7 @@ const fetchRecentConcerns = async () => {
         message: concern.message,
         initials: concern.initials,
         email: concern.email,
+        avatarUrl: concern.avatarUrl || null,
         status: concern.status || 'pending',
         createdAt: concern.createdAt
       }))
@@ -291,7 +327,7 @@ const fetchDashboardData = async () => {
   // Fetch all data that needs to be updated in real-time
   await Promise.all([
     fetchCurrentUserStatus(),
-    fetchStatistics(),
+    fetchAllConcernsAndComputeStats(),
     fetchRecentConcerns()
   ])
 }

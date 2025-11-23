@@ -1,75 +1,76 @@
 <template>
-  <section class="w-full p-6">
-    <div class="max-w-xl mx-auto text-center min-h-[calc(100vh-220px)] flex flex-col items-center justify-start pt-2">
+  <section class="w-full p-4 md:p-6 flex items-center justify-center">
+    <div class="max-w-xl mx-auto text-center min-h-0 flex flex-col items-center justify-center pt-1 md:pt-2">
       <div class="w-full flex flex-col items-center justify-start">
         <!-- Avatar with concentric rings -->
-        <div class="relative mb-10">
-          <div class="relative w-48 h-48 rounded-full bg-white flex items-center justify-center">
+        <div class="relative mb-6 md:mb-10">
+          <div class="relative w-32 h-32 md:w-48 md:h-48 rounded-full bg-white flex items-center justify-center">
             <!-- rings -->
             <span class="absolute inset-0 rounded-full ring-4 pulse-ring pulse-1" :class="ringOuterClass"></span>
             <span class="absolute -inset-2 rounded-full ring-4 pulse-ring pulse-2" :class="ringMiddleClass"></span>
             <span class="absolute -inset-4 rounded-full ring-4 pulse-ring pulse-3" :class="ringInnerClass"></span>
             <!-- avatar circle -->
-            <div class="w-44 h-44 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+            <div class="w-28 h-28 md:w-44 md:h-44 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
               <img 
-                :src="professorData.avatarUrl" 
+                :src="avatarSrc" 
                 :alt="`Profile of ${professorData.firstName} ${professorData.lastName}`" 
                 class="w-full h-full object-cover" 
+                @error="onAvatarError"
               />
             </div>
           </div>
         </div>
 
         <!-- Greeting -->
-        <div class="text-xl md:text-2xl font-semibold text-gray-900 mb-16">
+        <div class="text-lg md:text-2xl font-semibold text-gray-900 mb-4 md:mb-8">
           Good day, {{ professorData.title || 'Prof' }} {{ professorData.lastName }}! You're <span :class="statusColorClass">{{ statusText }}</span>.
         </div>
 
         <!-- Question -->
-        <div class="text-sm md:text-base text-gray-600 mb-3">Want to change your status?</div>
+        <div class="text-xs md:text-base text-gray-600 mb-2 md:mb-3">Want to change your status?</div>
 
         <!-- Status tiles -->
-        <div class="flex gap-3 mt-1">
+        <div class="flex flex-nowrap justify-between gap-2 md:gap-3 mt-8 md:mt-12 w-full max-w-[20rem] sm:max-w-none mx-auto">
           <!-- Available -->
           <button
             @click="set('available')"
-            class="w-32 h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            class="w-24 h-20 md:w-28 md:h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             :class="tileClass('available')"
           >
-            <div class="w-10 h-10 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('available')">
+            <div class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('available')">
               <img src="/available.svg" alt="Available"/>
             </div>
-            <div class="mt-2 text-sm font-medium" :class="labelColorClass('available')">Available</div>
+            <div class="mt-2 text-[11px] md:text-sm font-medium" :class="labelColorClass('available')">Available</div>
           </button>
 
           <!-- Busy -->
           <button
             @click="set('busy')"
-            class="w-32 h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            class="w-24 h-20 md:w-28 md:h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             :class="tileClass('busy')"
           >
-            <div class="w-10 h-10 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('busy')">
+            <div class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('busy')">
               <img src="/busy.svg" alt="Busy"/>
             </div>
-            <div class="mt-2 text-sm font-medium" :class="labelColorClass('busy')">Busy</div>
+            <div class="mt-2 text-[11px] md:text-sm font-medium" :class="labelColorClass('busy')">Busy</div>
           </button>
 
           <!-- Not Available -->
           <button
             @click="set('not_available')"
-            class="w-32 h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            class="w-24 h-20 md:w-28 md:h-24 rounded-2xl flex flex-col items-center justify-center border-2 tile-3d transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             :class="tileClass('not_available')"
           >
-            <div class="w-10 h-10 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('not_available')">
+            <div class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center badge-emboss" :class="iconBadgeClass('not_available')">
               <img src="/notavailable.svg" alt="Not Available"/>
             </div>
-            <div class="mt-2 text-sm font-medium" :class="labelColorClass('not_available')">Not Available</div>
+            <div class="mt-2 text-[11px] md:text-sm font-medium" :class="labelColorClass('not_available')">Not Available</div>
           </button>
         </div>
       </div>
 
       <!-- Footer info row pinned to bottom area -->
-      <div class="w-full flex items-center justify-between text-[11px] text-gray-400 mt-auto pt-6">
+      <div class="w-full flex items-center justify-between text-[10px] md:text-[11px] text-gray-400 mt-6 md:mt-auto pt-4 md:pt-6 fixed left-0 right-0 bottom-2 px-4 max-w-xl mx-auto md:static md:px-0 md:bottom-auto md:left-auto md:right-auto mb-4">
         <div>Last Update : {{ lastUpdate }}</div>
         <div>Source: {{ lastUpdateSource }}</div>
       </div>
@@ -99,6 +100,46 @@ const isLoading = ref(true)
 const professorId = ref(null)
 const professorUid = ref(null)
 const pollInterval = ref(null) // Added for polling
+
+// Avatar placeholder with initials
+const initials = computed(() => {
+  const f = (professorData.value.firstName || '').trim()
+  const l = (professorData.value.lastName || '').trim()
+  const fi = f ? f[0].toUpperCase() : 'P'
+  const li = l ? l[0].toUpperCase() : 'R'
+  return `${fi}${li}`
+})
+
+const placeholderSvg = computed(() => {
+  const text = encodeURIComponent(initials.value)
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='176' height='176'>
+    <defs>
+      <linearGradient id='bg' x1='0' x2='1' y1='0' y2='1'>
+        <stop offset='0%' stop-color='#e5e7eb'/>
+        <stop offset='100%' stop-color='#d1d5db'/>
+      </linearGradient>
+    </defs>
+    <rect width='100%' height='100%' rx='88' ry='88' fill='url(#bg)'/>
+    <g fill='#9CA3AF'>
+      <circle cx='88' cy='70' r='34' />
+      <rect x='26' y='108' width='124' height='40' rx='20' />
+    </g>
+    <text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='Inter, Arial, sans-serif' font-size='56' fill='#6B7280' font-weight='600'>${initials.value}</text>
+  </svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+})
+
+const PLACEHOLDER_URL = '/profile.svg'
+const avatarSrc = computed(() => {
+  const raw = (professorData.value.avatarUrl || '').toString().trim()
+  const isEmpty = !raw || raw.toLowerCase() === 'null' || raw.toLowerCase() === 'undefined'
+  return isEmpty ? PLACEHOLDER_URL : raw
+})
+
+const onAvatarError = (e) => {
+  e.target.onerror = null
+  e.target.src = PLACEHOLDER_URL
+}
 
 // Get professor data from localStorage
 const getProfessorData = () => {

@@ -24,7 +24,7 @@ export const addProfessor = async (req, res) => {
     const users = db.collection("users");
     const rfidLogs = db.collection("rfid_logs"); // Add rfid_logs collection
 
-    const { role, emailAddress, password, firstName, middleName, lastName, idNumber, contactNumber, facultyPosition, program, yearLevel, section, avatarUrl, coverUrl } = req.body;
+    const { role, emailAddress, password, firstName, middleName, lastName, idNumber, contactNumber, facultyPosition, program, yearLevel, section, advisoryClass, avatarUrl, coverUrl } = req.body;
 
     const existingUser = await users.findOne({ emailAddress });
     if (existingUser)
@@ -44,6 +44,7 @@ export const addProfessor = async (req, res) => {
       idNumber: idNumber ? idNumber.toUpperCase().trim() : '', // Normalize RFID if provided
       contactNumber,
       facultyPosition,
+      advisoryClass: advisoryClass || '',
       program: program || '',
       yearLevel: yearLevel || '',
       section: section || '',

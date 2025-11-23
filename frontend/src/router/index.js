@@ -19,6 +19,15 @@ const router = createRouter({
     // Student routes
     ...studentRoutes,
   ],
+  // Ensure each navigation starts at the top unless using back/forward
+  scrollBehavior(to, from, savedPosition) {
+    // Browser back/forward or popstate restores previous position
+    if (savedPosition) return savedPosition
+    // Navigate to an anchor on the page
+    if (to.hash) return { el: to.hash, top: 0, behavior: 'smooth' }
+    // Default: scroll to top-left
+    return { left: 0, top: 0 }
+  },
 })
 
 // ✅ Navigation Guard (Middleware)
@@ -30,6 +39,16 @@ router.beforeEach((to, from, next) => {
     localStorage.removeItem('token')
     localStorage.removeItem('role')
     localStorage.removeItem('user')
+    localStorage.removeItem('admin')
+    localStorage.removeItem('professor')
+    localStorage.removeItem('student')
+    localStorage.removeItem('currentUser')
+  }
+
+  // If navigating to any auth page, clear session to prevent forward navigation from restoring a logged-in state
+  if (to.path.startsWith('/auth')) {
+    clearSession()
+    return next()
   }
 
   // Check if the route needs authentication
@@ -64,6 +83,18 @@ router.beforeEach((to, from, next) => {
   // Allow visiting /login and /register even if already authenticated
 
   return next()
+})
+
+// Handle back/forward cache restores: if a protected page is restored from BFCache
+// and there is no token, force redirect to login.
+window.addEventListener('pageshow', () => {
+  const token = localStorage.getItem('token')
+  if (token) return
+  const current = router.currentRoute.value
+  const requiresAuth = current.matched.some(record => record.meta?.requiresAuth)
+  if (requiresAuth) {
+    router.replace('/auth/login')
+  }
 })
 
 export default router

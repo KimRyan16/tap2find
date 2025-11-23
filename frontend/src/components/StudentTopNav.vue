@@ -1,18 +1,18 @@
 <template>
-  <div class="px-4 md:px-2 py-4 flex justify-between items-center rounded-lg mx-4 mt-6" :class="{ 'gap-32': isDashboard }">
+  <div class="relative -mx-4 md:-mx-6 px-4 md:px-6 py-1.5 flex flex-row items-start justify-between flex-nowrap rounded-lg mx-0 mt-6 gap-2 sm:gap-3 lg:gap-32 min-h-[56px] sm:min-h-[72px]">
     <!-- Navigation Menu Info -->
-    <div class="flex-1">
-      <h1 class="text-4xl font-semibold text-gray-900">{{ currentPageTitle }}</h1>
-      <p class="text-base text-gray-500">{{ currentPageDescription }}</p>
+    <div class="flex-1 min-w-0">
+      <h1 class="text-xs sm:text-xl md:text-3xl lg:text-4xl font-semibold text-gray-900">{{ currentPageTitle }}</h1>
+      <p class="text-[10px] sm:text-sm md:text-base text-gray-500 break-words">{{ currentPageDescription }}</p>
     </div>
 
     <!-- Right Side - Notifications and Profile -->
-    <div class="flex items-center space-x-1">
+    <div class="flex items-center space-x-1 ml-2 sm:ml-auto shrink-0">
       <!-- Notifications -->
-      <div class="relative">
+      <div class="static sm:relative">
         <button
           @click="toggleNotifications"
-          class="flex items-center justify-center w-12 h-12 text-2xl text-gray-600 hover:text-gray-600 relative transition-colors"
+          class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-2xl text-gray-600 hover:text-gray-600 relative transition-colors"
         >
           <iconify-icon
             :icon="showNotifications ? 'ion:notifications' : 'ion:notifications-outline'"
@@ -27,18 +27,18 @@
         </button>
 
         <!-- 🔽 Notifications Dropdown -->
-        <Transition name="dropdown">
+        <Transition name="dropdown-center">
           <div
             v-if="showNotifications"
-            class="absolute right-0 mt-2 w-[420px] bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+            class="fixed left-1/2 top-16 -translate-x-1/2 w-[90vw] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[420px] sm:translate-x-0 bg-white rounded-lg shadow-lg border border-gray-200 z-[70]"
           >
             <!-- Header -->
-            <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
-              <h3 class="text-xl font-bold text-gray-900">Notifications</h3>
+            <div class="px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center border-b border-gray-100">
+              <h3 class="text-sm sm:text-xl font-bold text-gray-900">Notifications</h3>
               <button
                 @click.stop="clearAllNotifications"
                 :disabled="notificationsLoading || clearingAll"
-                class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                class="text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span v-if="clearingAll" class="inline-flex items-center">
                   <span class="w-3.5 h-3.5 border-2 border-gray-400/40 border-t-gray-600 rounded-full animate-spin"></span>
@@ -48,7 +48,7 @@
             </div>
 
             <!-- Notifications List -->
-            <div class="max-h-96 overflow-y-auto px-6 py-2">
+            <div class="max-h-96 overflow-y-auto px-4 sm:px-6 py-2">
               <!-- Skeleton while loading -->
               <div v-if="notificationsLoading" class="space-y-4 animate-pulse">
                 <div v-for="n in 3" :key="n" class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
@@ -62,15 +62,15 @@
                 </div>
               </div>
 
-              <template v-else-if="hasUnread">
+              <template v-else-if="notifications && notifications.length">
                 <!-- TODAY -->
-                <div v-if="groupedNotifications.today.length">
-                  <p class="text-sm text-gray-500 font-semibold mt-2 mb-1">Today</p>
+                <div v-if="groupedNotificationsLimited.today.length">
+                  <p class="text-xs sm:text-sm text-gray-500 font-semibold mt-2 mb-1">Today</p>
                   <ul>
                     <li
-                      v-for="n in groupedNotifications.today"
+                      v-for="n in groupedNotificationsLimited.today"
                       :key="n._id"
-                      class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0"
+                      class="flex items-start gap-2 sm:gap-3 py-2 sm:py-3 border-b border-gray-100 last:border-0"
                     >
                       <div>
                         <div
@@ -83,33 +83,39 @@
                           v-else
                           :src="n.avatar || '/profile.svg'"
                           alt="avatar"
-                          class="w-10 h-10 rounded-full object-cover"
+                          class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                         />
                       </div>
 
                       <div class="flex-1">
-                        <p class="text-gray-900 font-medium">{{ n.title }}</p>
-                        <p class="text-sm text-gray-600">{{ n.message }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
+                        <p class="text-[11px] sm:text-base text-gray-900 font-medium">{{ n.title }}</p>
+                        <p class="text-[10px] sm:text-sm text-gray-600">{{ n.message }}</p>
+                        <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
                       </div>
 
-                      <button
-                        v-if="!n.read"
-                        @click.stop="markAsRead(n._id)"
-                        class="text-gray-400 hover:text-gray-600"
-                      >
-                        <iconify-icon icon="mdi:check-circle-outline" />
-                      </button>
+                      <template v-if="!n.read">
+                        <button
+                          @click.stop="markAsRead(n._id)"
+                          class="text-gray-400 hover:text-gray-600"
+                        >
+                          <iconify-icon icon="mdi:check-circle-outline" />
+                        </button>
+                      </template>
+                      <template v-else>
+                        <span class="text-emerald-500">
+                          <iconify-icon icon="mdi:check-circle" />
+                        </span>
+                      </template>
                     </li>
                   </ul>
                 </div>
 
                 <!-- YESTERDAY -->
-                <div v-if="groupedNotifications.yesterday.length">
-                  <p class="text-sm text-gray-500 font-semibold mt-4 mb-1">Yesterday</p>
+                <div v-if="groupedNotificationsLimited.yesterday.length">
+                  <p class="text-xs sm:text-sm text-gray-500 font-semibold mt-4 mb-1">Yesterday</p>
                   <ul>
                     <li
-                      v-for="n in groupedNotifications.yesterday"
+                      v-for="n in groupedNotificationsLimited.yesterday"
                       :key="n._id"
                       class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0"
                     >
@@ -129,9 +135,9 @@
                       </div>
 
                       <div class="flex-1">
-                        <p class="text-gray-900 font-medium">{{ n.title }}</p>
-                        <p class="text-sm text-gray-600">{{ n.message }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
+                        <p class="text-[11px] sm:text-base text-gray-900 font-medium">{{ n.title }}</p>
+                        <p class="text-[10px] sm:text-sm text-gray-600">{{ n.message }}</p>
+                        <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
                       </div>
 
                       <button
@@ -146,11 +152,11 @@
                 </div>
 
                 <!-- EARLIER -->
-                <div v-if="groupedNotifications.earlier.length">
-                  <p class="text-sm text-gray-500 font-semibold mt-4 mb-1">Earlier</p>
+                <div v-if="groupedNotificationsLimited.earlier.length">
+                  <p class="text-xs sm:text-sm text-gray-500 font-semibold mt-4 mb-1">Earlier</p>
                   <ul>
                     <li
-                      v-for="n in groupedNotifications.earlier"
+                      v-for="n in groupedNotificationsLimited.earlier"
                       :key="n._id"
                       class="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0"
                     >
@@ -170,27 +176,33 @@
                       </div>
 
                       <div class="flex-1">
-                        <p class="text-gray-900 font-medium">{{ n.title }}</p>
-                        <p class="text-sm text-gray-600">{{ n.message }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
+                        <p class="text-[11px] sm:text-base text-gray-900 font-medium">{{ n.title }}</p>
+                        <p class="text-[10px] sm:text-sm text-gray-600">{{ n.message }}</p>
+                        <p class="text-[9px] sm:text-xs text-gray-500 mt-1">{{ formatDate(n.createdAt) }}</p>
                       </div>
 
-                      <button
-                        v-if="!n.read"
-                        @click.stop="markAsRead(n._id)"
-                        class="text-gray-400 hover:text-gray-600"
-                      >
-                        <iconify-icon icon="mdi:check-circle-outline" />
-                      </button>
+                      <template v-if="!n.read">
+                        <button
+                          @click.stop="markAsRead(n._id)"
+                          class="text-gray-400 hover:text-gray-600"
+                        >
+                          <iconify-icon icon="mdi:check-circle-outline" />
+                        </button>
+                      </template>
+                      <template v-else>
+                        <span class="text-emerald-500">
+                          <iconify-icon icon="mdi:check-circle" />
+                        </span>
+                      </template>
                     </li>
                   </ul>
                 </div>
               </template>
 
               <!-- Empty State -->
-              <div v-else class="text-center py-10 text-gray-500">
-                <iconify-icon icon="mingcute:notification-off-line" class="h-10 w-10 mx-auto mb-2" />
-                <p>No notifications available.</p>
+              <div v-else-if="!notifications.length" class="flex flex-col items-center justify-center w-full text-center py-10 text-gray-500">
+                <iconify-icon icon="mingcute:notification-off-line" class="block mx-auto h-12 w-12 sm:h-16 sm:w-16 mb-2" />
+                <p class="text-xs sm:text-sm">No notifications available.</p>
               </div>
             </div>
 
@@ -211,34 +223,29 @@
       <div class="relative">
         <button
           @click="toggleProfileMenu"
-          class="flex items-center space-x-3 p-2 rounded-lg transition-colors"
+          class="flex items-center space-x-0 md:space-x-2 p-2 rounded-lg transition-colors"
         >
           <!-- Profile Picture -->
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-blue-100">
-            <img
-              v-if="user.avatarUrl"
-              :src="user.avatarUrl"
-              alt="Profile"
-              class="w-full h-full object-cover"
-            />
-            <span v-else class="text-sm font-semibold text-blue-600">{{ initials }}</span>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
+            <img v-if="user.avatarUrl" :src="user.avatarUrl" alt="Profile" class="w-full h-full object-cover" />
+            <img v-else src="/profile.svg" alt="Profile placeholder" class="w-full h-full object-cover" />
           </div>
           
           <!-- Profile Info -->
-          <div class="flex flex-col items-start">
+          <div class="hidden md:flex flex-col items-start">
             <span class="text-sm font-semibold text-gray-900">{{ user.firstName }} {{ user.lastName }}</span>
             <span class="text-xs text-gray-500">{{ user.emailAddress }}</span>
           </div>
           
           <!-- Dropdown Icon -->
-          <iconify-icon icon="lucide:chevron-down" class="h-4 w-4 text-gray-400" />
+          <iconify-icon icon="lucide:chevron-down" class="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 -ml-1" />
         </button>
 
         <!-- Profile Dropdown Menu -->
         <Transition name="dropdown">
           <div
             v-if="showProfileMenu"
-            class="absolute right-0 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+            class="absolute right-2 sm:right-0 mt-2 w-56 sm:w-full bg-white rounded-lg shadow-lg border border-gray-200 z-[60]"
           >
             <div class="py-1">
               <router-link
@@ -325,8 +332,8 @@ const fetchNotifications = async () => {
     const userId = userData._id || userData.id
     const userRole = userData.role // Get user role
 
-    // Fetch notifications with both studentId and userRole
-    const { data } = await api.get(`/notification/get-unread-notifications?userId=${userId}&userRole=${userRole}`)
+    // Fetch ALL notifications (read and unread) with userId and role
+    const { data } = await api.get(`/notification/get-all-notifications?userId=${userId}&userRole=${userRole}`)
     if (data.success) {
       notifications.value = data.data
       console.log(`🔄 Polled ${data.data.length} notifications for ${userRole}`)
@@ -391,8 +398,7 @@ const groupedNotifications = computed(() => {
   const groups = { today: [], yesterday: [], earlier: [] }
 
   notifications.value.forEach(n => {
-    // Only show UNREAD in dropdown
-    if (n.read) return
+    // Show all notifications; we'll style read vs unread
     const created = dayjs(n.createdAt)
     if (created.isAfter(today)) groups.today.push(n)
     else if (created.isAfter(yesterday)) groups.yesterday.push(n)
@@ -403,6 +409,23 @@ const groupedNotifications = computed(() => {
     groups[key].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }
   return groups
+})
+
+// Limit to the 5 most recent items across all groups while preserving section headers
+const groupedNotificationsLimited = computed(() => {
+  const limit = 5
+  const result = { today: [], yesterday: [], earlier: [] }
+  let remaining = limit
+  const pushSome = (arr, dest) => {
+    if (remaining <= 0) return
+    const take = Math.min(arr.length, remaining)
+    dest.push(...arr.slice(0, take))
+    remaining -= take
+  }
+  pushSome(groupedNotifications.value.today, result.today)
+  pushSome(groupedNotifications.value.yesterday, result.yesterday)
+  pushSome(groupedNotifications.value.earlier, result.earlier)
+  return result
 })
 
 // --- Notification count for badge (unread only) ---
@@ -436,7 +459,7 @@ const clearAllNotifications = async () => {
     const userId = userData._id || userData.id
     const userRole = userData.role
 
-    await api.post('/notification/mark-all-read', { userId, userRole })
+    await api.put('/notification/mark-all-read', { userId, userRole })
 
     // Locally mark all as read so badge goes to 0 and dropdown empties
     notifications.value = notifications.value.map(n => ({ ...n, read: true }))
@@ -450,7 +473,14 @@ const clearAllNotifications = async () => {
 }
 
 const logout = () => {
-  router.push('/auth/login')
+  try {
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    localStorage.removeItem('user')
+    localStorage.removeItem('student')
+    localStorage.removeItem('currentUser')
+  } catch {}
+  router.replace('/auth/login')
 }
 
 const confirmSignOut = () => {
@@ -514,16 +544,32 @@ onMounted(async () => {
   // Initialize notifications and start polling
   await initializeNotifications()
   startPolling()
+  // Listen for profile updates to refresh avatar and details in real time
+  window.addEventListener('profile:updated', () => {
+    try {
+      const u = localStorage.getItem('user')
+      if (u) user.value = JSON.parse(u)
+    } catch {}
+  })
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   // Clean up polling interval when component is destroyed
   stopPolling()
+  window.removeEventListener('profile:updated', () => {})
 })
 </script>
 
 <style scoped>
+.dropdown-center-enter-active,
+.dropdown-center-leave-active {
+  transition: opacity 0.2s ease;
+}
+.dropdown-center-enter-from,
+.dropdown-center-leave-to {
+  opacity: 0;
+}
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.3s ease;

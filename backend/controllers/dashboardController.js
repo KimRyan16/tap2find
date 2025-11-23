@@ -60,53 +60,35 @@ export const getStudentDashboard = async (req, res) => {
     };
 
     // Calculate real-time availability stats for CURRENT HOUR only
-    if (isWeekend) {
-      // Weekend - all professors not available
-      overallStats = {
-        available: 0,
-        busy: 0,
-        notAvailable: professors.length,
-        total: professors.length
-      };
-    } else {
-      // Weekday - calculate based on schedules and status for current hour only
-      professors.forEach(professor => {
-        const professorSchedule = professorSchedules.find(s => 
-          s.professorId.toString() === professor._id.toString()
-        );
+    professors.forEach(professor => {
+      const professorSchedule = professorSchedules.find(s => 
+        s.professorId.toString() === professor._id.toString()
+      );
 
-        const professorStatus = professor.status?.toLowerCase() || 'not available';
+      // Normalize status text (handle dash/space variants)
+      const rawStatus = (professor.status || 'not-available').toString().toLowerCase();
+      const professorStatus = rawStatus.replace(' ', '-');
 
-        // If professor is not verified, mark as not available
-        if (!professor.isVerified) {
-          overallStats.notAvailable++;
-          return;
-        }
+      const todaysSchedule = professorSchedule?.schedule?.filter(
+        s => s.day === currentDay
+      ) || [];
 
-        const todaysSchedule = professorSchedule?.schedule?.filter(
-          s => s.day === currentDay
-        ) || [];
+      // Check if professor has schedule at current hour
+      const hasSchedule = todaysSchedule.some(schedule => 
+        currentHour >= schedule.startTime && currentHour < schedule.endTime
+      );
 
-        // Check if professor has schedule at current hour
-        const hasSchedule = todaysSchedule.some(schedule => 
-          currentHour >= schedule.startTime && currentHour < schedule.endTime
-        );
-
-        if (professorStatus === 'not available') {
-          overallStats.notAvailable++;
-        } else if (hasSchedule) {
-          overallStats.busy++;
-        } else {
-          if (professorStatus === 'available') {
-            overallStats.available++;
-          } else if (professorStatus === 'busy') {
-            overallStats.busy++;
-          } else {
-            overallStats.notAvailable++;
-          }
-        }
-      });
-    }
+      if (hasSchedule) {
+        // Always busy during class
+        overallStats.busy++;
+      } else if (professorStatus === 'available') {
+        overallStats.available++;
+      } else if (professorStatus === 'busy') {
+        overallStats.busy++;
+      } else {
+        overallStats.notAvailable++;
+      }
+    });
 
     console.log('🎯 Final calculated stats:', overallStats);
 
@@ -164,6 +146,7 @@ export const getStudentDashboard = async (req, res) => {
                   facultyPosition: professor.facultyPosition,
                   office: professor.office,
                   status: professor.status || "Not Available",
+                  avatarUrl: professor.avatarUrl || null,
                 }
               : null,
           };
@@ -253,52 +236,17 @@ export const getProfessorAvailability = async (req, res) => {
       };
     });
 
-    // If it's weekend, all professors are not available
-    if (isWeekend) {
-      hours.forEach(hour => {
-        availabilityData[hour] = {
-          available: 0,
-          busy: 0,
-          notAvailable: professors.length,
-          total: professors.length
-        };
-      });
-      
-      res.status(200).json({
-        success: true,
-        data: {
-          hourlyData: availabilityData,
-          overallStats: {
-            available: 0,
-            busy: 0,
-            notAvailable: professors.length,
-            total: professors.length
-          },
-          currentDay,
-          currentHour,
-          totalProfessors: professors.length,
-          isWeekend: true
-        }
-      });
-      return;
-    }
+    // Weekend no longer forces Not Available; compute same as weekdays
 
-    // Calculate availability for each professor (only on weekdays)
+    // Calculate availability for each professor (all days)
     professors.forEach(professor => {
       const professorSchedule = professorSchedules.find(s => 
         s.professorId.toString() === professor._id.toString()
       );
 
-      // Get professor's current status
-      const professorStatus = professor.status?.toLowerCase() || 'not available';
-
-      // If professor is not verified, mark as not available for all hours
-      if (!professor.isVerified) {
-        hours.forEach(hour => {
-          availabilityData[hour].notAvailable++;
-        });
-        return;
-      }
+      // Get professor's current status (normalized)
+      const rawStatus = (professor.status || 'not-available').toString().toLowerCase();
+      const professorStatus = rawStatus.replace(' ', '-');
 
       // Get today's schedule for this professor
       const todaysSchedule = professorSchedule?.schedule?.filter(
@@ -314,8 +262,8 @@ export const getProfessorAvailability = async (req, res) => {
           return hour >= startTime && hour < endTime;
         });
 
-        // NEW LOGIC: Evaluate availability based on status AND schedule
-        if (professorStatus === 'not available') {
+        // Evaluate availability based on manual status AND schedule
+        if (professorStatus === 'not-available') {
           // Professor explicitly set as not available - override everything
           availabilityData[hour].notAvailable++;
         } else if (hasSchedule) {

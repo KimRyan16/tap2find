@@ -1,18 +1,18 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <div class="px-4 md:px-6 pt-8">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8">
       <div class="mb-4">
         <button @click="goBack" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 ">
           <iconify-icon icon="ion:chevron-back" class="text-base" />
           <span>Back</span>
         </button>
       </div>
-      <h1 class="text-4xl font-semibold text-gray-900">Support & About</h1>
-      <p class="text-base text-gray-500 mb-6">Help resources and application information.</p>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900">Support & About</h1>
+      <p class="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6">Help resources and application information.</p>
 
       <!-- Help Center / FAQs -->
-      <section class="bg-white shadow rounded-xl p-5 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Help Center / FAQs</h2>
+      <section class="bg-white shadow rounded-xl p-4 md:p-5 mb-6">
+        <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Help Center / FAQs</h2>
         <div class="grid sm:grid-cols-2 gap-4 text-sm">
           <a href="#" class="block border rounded-xl p-4 hover:bg-gray-50">
             <div class="font-medium text-gray-900">Browse Help Articles</div>
@@ -34,8 +34,8 @@
       </section>
 
       <!-- Version Info -->
-      <section class="bg-white shadow rounded-xl p-5 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Version Info</h2>
+      <section class="bg-white shadow rounded-xl p-4 md:p-5 mb-6">
+        <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Version Info</h2>
         <div class="grid sm:grid-cols-3 gap-4 text-sm">
           <div class="border rounded-xl p-4">
             <div class="text-xs text-gray-500">Current Version</div>
@@ -60,8 +60,8 @@
       </section>
 
       <!-- Terms & Privacy Policy -->
-      <section class="bg-white shadow rounded-xl p-5">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Terms & Privacy Policy</h2>
+      <section class="bg-white shadow rounded-xl p-4 md:p-5">
+        <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Terms & Privacy Policy</h2>
         <div class="grid sm:grid-cols-2 gap-4 text-sm">
           <a href="#" class="block border rounded-xl p-4 hover:bg-gray-50">
             <div class="font-medium text-gray-900">Terms of Service</div>

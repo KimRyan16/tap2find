@@ -75,7 +75,7 @@ export const getUnreadNotifications = async (req, res) => {
 
       // PRIORITY 1: User-specific notifications (highest priority)
       if (notifUserId && notifUserId === userId) {
-        console.log(`   ✅ USER-SPECIFIC - userId matches exactly`);
+        // console.log(`   ✅ USER-SPECIFIC - userId matches exactly`);
         return true;
       }
 
@@ -112,7 +112,7 @@ export const getUnreadNotifications = async (req, res) => {
       return false;
     });
 
-    console.log(`\n🎯 RESULTS: ${visibleNotifications.length} visible notifications`);
+    // console.log(`\n🎯 RESULTS: ${visibleNotifications.length} visible notifications`);
 
     // Get read status
     const readStatuses = await notificationReads.find({
@@ -127,7 +127,7 @@ export const getUnreadNotifications = async (req, res) => {
       !readNotificationIds.has(notification._id.toString())
     );
 
-    console.log(`📢 FINAL: ${unreadNotifications.length} unread notifications\n`);
+    // console.log(`📢 FINAL: ${unreadNotifications.length} unread notifications\n`);
 
     res.json({ success: true, data: unreadNotifications });
 
@@ -156,7 +156,7 @@ export const getAllNotifications = async (req, res) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    console.log('🔍 getAllNotifications - Strict filtering for user:', userId);
+    // console.log('🔍 getAllNotifications - Strict filtering for user:', userId);
     
     // Apply the same strict filtering logic
     const visibleNotifications = allNotifications.filter(notification => {
@@ -164,21 +164,21 @@ export const getAllNotifications = async (req, res) => {
       const notifUserId = notification.userId ? notification.userId.toString() : null;
       const notifProfessorId = notification.professorId ? notification.professorId.toString() : null;
 
-      console.log(`\n🔍 "${notification.title}"`);
-      console.log(`   studentId: ${notifStudentId}, userId: ${notifUserId}, professorId: ${notifProfessorId}`);
-      console.log(`   targetRole: ${notification.targetRole}, isGeneral: ${notification.isGeneral}`);
+      // console.log(`\n🔍 "${notification.title}"`);
+      // console.log(`   studentId: ${notifStudentId}, userId: ${notifUserId}, professorId: ${notifProfessorId}`);
+      // console.log(`   targetRole: ${notification.targetRole}, isGeneral: ${notification.isGeneral}`);
 
       // 🚫 FIRST: Check if this notification has ANY user-specific field that DOESN'T match
       if (notifStudentId && notifStudentId !== userId) {
-        console.log(`   ❌ HAS studentId ${notifStudentId} that DOES NOT match ${userId} - HIDING`);
+        // console.log(`   ❌ HAS studentId ${notifStudentId} that DOES NOT match ${userId} - HIDING`);
         return false;
       }
       if (notifUserId && notifUserId !== userId) {
-        console.log(`   ❌ HAS userId ${notifUserId} that DOES NOT match ${userId} - HIDING`);
+        // console.log(`   ❌ HAS userId ${notifUserId} that DOES NOT match ${userId} - HIDING`);
         return false;
       }
       if (notifProfessorId && notifProfessorId !== userId) {
-        console.log(`   ❌ HAS professorId ${notifProfessorId} that DOES NOT match ${userId} - HIDING`);
+        // console.log(`   ❌ HAS professorId ${notifProfessorId} that DOES NOT match ${userId} - HIDING`);
         return false;
       }
 
@@ -186,35 +186,35 @@ export const getAllNotifications = async (req, res) => {
       
       // User-specific matches
       if (notifStudentId && notifStudentId === userId) {
-        console.log(`   ✅ studentId matches exactly`);
+        // console.log(`   ✅ studentId matches exactly`);
         return true;
       }
       if (notifUserId && notifUserId === userId) {
-        console.log(`   ✅ userId matches exactly`);
+        // console.log(`   ✅ userId matches exactly`);
         return true;
       }
       if (notifProfessorId && notifProfessorId === userId) {
-        console.log(`   ✅ professorId matches exactly`);
+        // console.log(`   ✅ professorId matches exactly`);
         return true;
       }
 
       // Role-specific (only if no user-specific fields)
       if (notification.targetRole === userRole && !notifStudentId && !notifUserId && !notifProfessorId) {
-        console.log(`   ✅ role-specific for ${userRole}`);
+        // console.log(`   ✅ role-specific for ${userRole}`);
         return true;
       }
 
       // General (only if no user-specific or role-specific fields)
       if (notification.isGeneral && !notifStudentId && !notifUserId && !notifProfessorId && !notification.targetRole) {
-        console.log(`   ✅ general notification`);
+        // console.log(`   ✅ general notification`);
         return true;
       }
 
-      console.log(`   ❌ no matching conditions`);
+      // console.log(`   ❌ no matching conditions`);
       return false;
     });
 
-    console.log(`\n🎯 getAllNotifications RESULTS: ${visibleNotifications.length} visible notifications out of ${allNotifications.length} total`);
+    // console.log(`\n🎯 getAllNotifications RESULTS: ${visibleNotifications.length} visible notifications out of ${allNotifications.length} total`);
 
     // Get read status for these notifications
     const readStatuses = await notificationReads
@@ -235,7 +235,7 @@ export const getAllNotifications = async (req, res) => {
       read: readStatusMap.has(notification._id.toString())
     }));
 
-    console.log(`📢 Fetched ${notificationsWithReadStatus.length} total notifications for ${userRole} user: ${userId}`);
+    // console.log(`📢 Fetched ${notificationsWithReadStatus.length} total notifications for ${userRole} user: ${userId}`);
 
     res.json({ success: true, data: notificationsWithReadStatus });
   } catch (error) {
@@ -297,7 +297,7 @@ export const markNotificationAsRead = async (req, res) => {
       { upsert: true }
     );
 
-    console.log(`✅ Notification ${notificationId} marked as read by user ${userId}`);
+    // console.log(`✅ Notification ${notificationId} marked as read by user ${userId}`);
     
     res.json({ 
       success: true, 
@@ -365,7 +365,7 @@ export const markAllAsRead = async (req, res) => {
       await notificationReads.insertMany(readRecords);
     }
 
-    console.log(`📖 Marked ${readRecords.length} notifications as read for user ${userId}`);
+    // console.log(`📖 Marked ${readRecords.length} notifications as read for user ${userId}`);
     
     res.json({ 
       success: true, 
@@ -428,7 +428,7 @@ export const getUnreadNotificationCount = async (req, res) => {
       !readNotificationIds.has(notification._id.toString())
     ).length;
 
-    console.log(`🔔 User ${userId} has ${unreadCount} unread notifications`);
+    // console.log(`🔔 User ${userId} has ${unreadCount} unread notifications`);
     
     res.json({ 
       success: true, 
@@ -711,7 +711,7 @@ export const createInquiryStatusNotification = async (inquiryData) => {
 
     case 'declined':
       notificationTitle = `Inquiry Response: ${title}`;
-      notificationMessage = `Professor ${professorName} has responded to your inquiry`;
+      notificationMessage = `Professor ${professorName} has responded to your inquiry. [${replyMessage}]`;
       emailSubject = `Response to Your Inquiry: ${title}`;
       emailContent = `
         <p>Dear Student,</p>

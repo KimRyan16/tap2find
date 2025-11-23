@@ -1,5 +1,49 @@
 <template>
   <div class="auth-page bg-white">
+    <div aria-live="polite" class="fixed top-4 right-4 z-[9999] space-y-3">
+      <div
+        v-for="t in toasts"
+        :key="t.id"
+        class="w-80 md:w-96 bg-white rounded-2xl shadow-lg border p-4 pr-5"
+        :class="t.type === 'success' ? 'border-green-300' : 'border-red-300'"
+      >
+        <div v-if="t.barPosition==='top'" class="mb-3 h-1 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            class="h-full"
+            :class="t.type==='success' ? 'bg-green-500' : 'bg-red-500'"
+            :style="{ animation: `toast-shrink ${t.duration}ms linear forwards` }"
+          ></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div
+            class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full border"
+            :class="t.type === 'success' ? 'border-green-400 text-green-600' : 'border-red-400 text-red-600'"
+          >
+            <svg v-if="t.type==='success'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+              <path fill-rule="evenodd" d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm14.03-2.28a.75.75 0 10-1.06-1.06l-5.22 5.22-1.72-1.72a.75.75 0 10-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l5.75-5.75z" clip-rule="evenodd"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+              <path fill-rule="evenodd" d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM10.94 8.47a.75.75 0 011.06 0L12 8.47l.53-.53a.75.75 0 111.06 1.06L13.06 9.53l.53.53a.75.75 0 11-1.06 1.06L12 10.59l-.53.53a.75.75 0 11-1.06-1.06l.53-.53-.53-.53a.75.75 0 010-1.06z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs font-semibold tracking-wide" :class="t.type==='success' ? 'text-green-700' : 'text-red-700'">
+              {{ t.type === 'success' ? 'SUCCESS' : 'ERROR' }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ t.message }}
+            </div>
+          </div>
+        </div>
+        <div v-if="t.barPosition!=='top'" class="mt-3 h-1 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            class="h-full"
+            :class="t.type==='success' ? 'bg-green-500' : 'bg-red-500'"
+            :style="{ animation: `toast-shrink ${t.duration}ms linear forwards` }"
+          ></div>
+        </div>
+      </div>
+    </div>
     <!-- Auth Card -->
     <div class="py-8 px-6 relative">
       <button @click="goBack" class="absolute top-2 left-2 p-2 text-gray-600">
@@ -122,6 +166,28 @@ const isResending = ref(false)
 const timeLeft = ref(300) // 5 minutes in seconds
 let timer = null
 
+// Toast state and helper
+const toasts = ref([])
+const defaultBarPosition = ref('bottom')
+const setToastBarPosition = (pos) => {
+  defaultBarPosition.value = pos === 'top' ? 'top' : 'bottom'
+}
+const showToast = (message, type = 'success', options = {}) => {
+  let duration = 3000
+  let barPosition = defaultBarPosition.value
+  if (typeof options === 'number') {
+    duration = options
+  } else if (options && typeof options === 'object') {
+    duration = options.duration ?? duration
+    barPosition = options.barPosition ?? barPosition
+  }
+  const id = Date.now() + Math.random()
+  toasts.value.push({ id, message, type, duration, barPosition })
+  setTimeout(() => {
+    toasts.value = toasts.value.filter(t => t.id !== id)
+  }, duration)
+}
+
 // Computed properties
 const isOTPComplete = computed(() => {
   return otpDigits.value.every(digit => digit !== '')
@@ -209,13 +275,15 @@ const verifyOTP = async () => {
     };
 
     const response = await api.post('/auth/verify-otp', payload);
-    alert(response.data.message || 'Email verified successfully!');
-    router.push('/auth/login');
+    showToast(response.data.message || 'Email verified successfully!', 'success');
+    setTimeout(() => {
+      router.push('/auth/login');
+    }, 1200);
 
   } catch (error) {
     console.error('Error verifying OTP:', error);
     const msg = error.response?.data?.message || 'Invalid or expired OTP. Please try again.';
-    alert(msg);
+    showToast(msg, 'error');
     otpDigits.value = ['', '', '', '', '', ''];
     otpInputs.value[0]?.focus();
   } finally {
@@ -232,13 +300,13 @@ const resendOTP = async () => {
     const payload = { emailAddress: email.value };
     const response = await api.post('/auth/resend-otp', payload);
     
-    alert(response.data.message || 'New OTP sent successfully!');
+    showToast(response.data.message || 'New OTP sent successfully!', 'success');
     
     otpDigits.value = ['', '', '', '', '', ''];
     startTimer(); // restart countdown
   } catch (error) {
     console.error('Error resending OTP:', error);
-    alert(error.response?.data?.message || 'Failed to resend OTP. Please try again.');
+    showToast(error.response?.data?.message || 'Failed to resend OTP. Please try again.', 'error');
   } finally {
     isResending.value = false;
   }
@@ -268,3 +336,10 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+@keyframes toast-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+</style>

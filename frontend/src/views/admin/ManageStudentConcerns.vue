@@ -653,7 +653,7 @@ export default {
   data() {
     return {
       concerns: [],
-      loading: false,
+      loading: true,
       query: "",
       statusFilter: "",
       showStatusDropdown: false,
@@ -826,12 +826,17 @@ export default {
       this.goToPageInput = String(this.currentPage);
     },
     async fetchConcerns() {
+      // Show skeleton only on first load (avoid flicker during polling)
+      const shouldShowSkeleton = this.concerns.length === 0 && this.loading !== true
+      if (shouldShowSkeleton) this.loading = true
       try {
         const res = await api.get("/admin/concerns");
         this.concerns = res.data.concerns || [];
         console.log('🔄 Polled concerns:', this.concerns.length);
       } catch (e) {
         console.error("Failed to fetch concerns", e);
+      } finally {
+        this.loading = false
       }
     },
     displayStudent(c) {

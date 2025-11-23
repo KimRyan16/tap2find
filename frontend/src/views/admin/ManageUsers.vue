@@ -842,7 +842,7 @@ export default {
   data() {
     return {
       students: [],
-      loading: false,
+      loading: true,
       query: "",
       statusFilter: "",
       activeSection: 'personal',
@@ -1069,6 +1069,9 @@ export default {
       return ok;
     },
     async fetchStudents() {
+      // Show skeleton only on first load (avoid flicker during polling)
+      const shouldShowSkeleton = this.students.length === 0 && this.loading !== true;
+      if (shouldShowSkeleton) this.loading = true;
       try {
         const res = await api.get("/admin/users?role=student"); // fetch only students from backend
         const users = res.data.users || [];
@@ -1076,6 +1079,8 @@ export default {
         console.log('🔄 Polled students:', this.students.length);
       } catch (e) {
         console.error("Failed to fetch students", e);
+      } finally {
+        this.loading = false;
       }
     },
     setActiveSection(section) {

@@ -1,94 +1,271 @@
 <template>
-  <div class="home">
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-center items-center min-h-screen">
-          <div class="w-full lg:w-2/3 text-center">
-            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
-              Welcome to Tap2Find 🔥
-            </h1>
-            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Your ultimate solution for finding and connecting with what matters most. 
-              Discover, connect, and thrive with our innovative platform.
-            </p>
-            <div class="flex justify-center gap-4 flex-wrap">
-              <router-link 
-                :to="{ name: 'register' }"
-                class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                🚀 Get Started
-              </router-link>
-              <router-link 
-                to="/about"
-                class="border-2 border-gray-600 text-gray-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-600 hover:text-white transition-colors"
-              >
-                ℹ️ Learn More
-              </router-link>
+  <section id="hero" class="relative overflow-hidden h-screen flex items-center justify-center bg-white">
+    <!-- Background accents -->
+    <div class="absolute inset-0 bg-white">
+      <div
+        class="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"
+      ></div>
+      <div
+        class="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float-delayed"
+      ></div>
+      <div
+        class="absolute inset-0 bg-[linear-gradient(0deg,transparent_24%,rgba(0,23,64,.06)_25%,rgba(0,23,64,.06)_26%,transparent_27%,transparent_74%,rgba(0,23,64,.06)_75%,rgba(0,23,64,.06)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(0,23,64,.06)_25%,rgba(0,23,64,.06)_26%,transparent_27%,transparent_74%,rgba(0,23,64,.06)_75%,rgba(0,23,64,.06)_76%,transparent_77%,transparent)] bg-[size:50px_50px]"
+      ></div>
+    </div>
+
+    <!-- Hero content -->
+    <div class="relative z-10 mx-auto max-w-screen-xl 2xl:max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center space-y-8 max-w-3xl mx-auto">
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#001740] leading-tight mt-16">
+          Find Your
+          <span class="text-[#102A71]">Professors</span>,
+          Instantly.
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          Tap2Find is an RFID-powered system that lets students instantly locate professors, check their availability,
+          and send inquiries in one tap—built for the College of Computer Studies.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <router-link
+            to="/auth/register"
+            class="group relative inline-flex items-center justify-center rounded-full bg-[#001740] text-white font-semibold px-8 py-4 text-lg transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105"
+          >
+            <span class="relative z-10">Get Started</span>
+            <svg
+              class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </router-link>
+          <a
+            href="#problem-solution"
+            class="inline-flex items-center justify-center rounded-full bg-gray-600 text-white font-semibold px-8 py-4 text-lg transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 border border-white/20"
+          >
+            Learn More
+          </a>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 pt-8 max-w-xl mx-auto">
+          <div class="text-center">
+            <p class="text-2xl font-bold text-[#F5C400]">100%</p>
+            <p class="text-base text-gray-500 font-medium mt-1">RFID Coverage</p>
+          </div>
+          <div class="text-center border-l border-r border-slate-700">
+            <p class="text-2xl font-bold text-[#F5C400]">&lt;1s</p>
+            <p class="text-base text-gray-500 font-medium mt-1">Response Time</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-[#F5C400]">Live</p>
+            <p class="text-base text-gray-500 font-medium mt-1">Availability</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem & Solution -->
+  <section id="problem-solution" class="bg-gray-50 py-32">
+    <div class="mx-auto max-w-screen-xl 2xl:max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2 items-center">
+        <!-- Text content -->
+        <div>
+          <p class="text-sm font-semibold tracking-[0.25em] uppercase text-[#001740]">Problem & Solution</p>
+          <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-gray-900">
+            Tired of wandering around looking for your professor?
+          </h2>
+          <p class="mt-4 text-base sm:text-lg text-gray-600 max-w-xl">
+            Students often struggle to locate professors across multiple rooms and changing schedules. This leads to
+            wasted time, missed consultations, and unnecessary delays in getting academic support.
+          </p>
+          <p class="mt-6 text-base sm:text-lg font-medium text-[#001740] max-w-xl">
+            We built a real-time IoT system that shows who’s in, who’s out, and how to reach them — instantly.
+          </p>
+        </div>
+        <!-- Animation content -->
+        <div class="flex justify-center lg:justify-end">
+          <div class="w-full max-w-xl h-[26rem] sm:h-[32rem]">
+            <iframe
+              src="https://lottie.host/embed/5658b456-028d-4527-b219-25bbb14ca5eb/GTGHn8FjAv.lottie"
+              class="w-full h-full "
+              frameborder="0"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="bg-white py-32">
+    <div class="mx-auto max-w-screen-xl 2xl:max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <!-- Heading -->
+      <div class="text-center max-w-4xl mx-auto">
+        <p class="text-sm font-semibold tracking-[0.25em] uppercase text-[#001740]">How It Works</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-gray-900">
+          Real-Time Professor Availability in One Tap
+        </h2>
+      </div>
+
+      <!-- Steps flow (using provided flow diagram style) -->
+      <div class="relative mt-24">
+        <div class="relative">
+          <div class="flex flex-col lg:flex-row items-stretch justify-between gap-8 lg:gap-4">
+            <!-- Step 1 -->
+            <div class="flex-1 flex flex-col items-center relative group">
+              <div class="relative z-10 mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <div
+                  class="w-24 h-24 rounded-full bg-[#102A71] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Icon icon="iconoir:hand-card" class="w-12 h-12 text-white" />
+                </div>
+                <div
+                  class="absolute -top-2 -right-2 w-8 h-8 bg-[#dbb42e] rounded-full flex items-center justify-center text-white text-sm font-bold"
+                >
+                  01
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Professor taps RFID</h3>
+              <p class="text-slate-600 text-center text-sm leading-relaxed max-w-xs">
+                Professor taps at the RFID reader to signal their real-time availability.
+              </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex-1 flex flex-col items-center relative group">
+              <div class="relative z-10 mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <div
+                  class="w-24 h-24 rounded-full bg-[#102A71] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Icon icon="fluent:cloud-sync-20-regular" class="w-12 h-12 text-white" />
+                </div>
+                <div
+                  class="absolute -top-2 -right-2 w-8 h-8 bg-[#dbb42e] rounded-full flex items-center justify-center text-white text-sm font-bold"
+                >
+                  02
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Cloud sync</h3>
+              <p class="text-slate-600 text-center text-sm leading-relaxed max-w-xs">
+                The system instantly updates the professor's status in the secure cloud database.
+              </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex-1 flex flex-col items-center relative group">
+              <div class="relative z-10 mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <div
+                  class="w-24 h-24 rounded-full bg-[#102A71] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Icon icon="solar:server-square-update-outline" class="w-12 h-12 text-white" />
+                </div>
+                <div
+                  class="absolute -top-2 -right-2 w-8 h-8 bg-[#dbb42e] rounded-full flex items-center justify-center text-white text-sm font-bold"
+                >
+                  03
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Dashboard update</h3>
+              <p class="text-slate-600 text-center text-sm leading-relaxed max-w-xs">
+                The TAP2FIND PWA refreshes, showing live availability on the dashboard.
+              </p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex-1 flex flex-col items-center relative group">
+              <div class="relative z-10 mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <div
+                  class="w-24 h-24 rounded-full bg-[#102A71] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Icon icon="fluent:desktop-cursor-24-regular" class="w-12 h-12 text-white" />
+                </div>
+                <div
+                  class="absolute -top-2 -right-2 w-8 h-8 bg-[#dbb42e] rounded-full flex items-center justify-center text-white text-sm font-bold"
+                >
+                  04
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Instant connect</h3>
+              <p class="text-slate-600 text-center text-sm leading-relaxed max-w-xs">
+                Students view availability or send an inquiry instantly from the web app.
+              </p>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="flex-1 flex flex-col items-center relative group">
+              <div class="relative z-10 mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <div
+                  class="w-24 h-24 rounded-full bg-[#102A71] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Icon
+                    icon="streamline-ultimate:alert-bell-notification-2"
+                    class="w-12 h-12 text-white"
+                  />
+                </div>
+                <div
+                  class="absolute -top-2 -right-2 w-8 h-8 bg-[#dbb42e] rounded-full flex items-center justify-center text-white text-sm font-bold"
+                >
+                  05
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">SMS notification</h3>
+              <p class="text-slate-600 text-center text-sm leading-relaxed max-w-xs">
+                The professor receives an SMS notification when a student sends an inquiry.
+              </p>
             </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Features Section -->
-    <section class="py-20 bg-white" id="features">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Why Choose Tap2Find?</h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover the features that make us different and help you achieve your goals faster.
-          </p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div v-for="feature in features" :key="feature.title" class="text-center p-8 border border-gray-200 rounded-lg">
-            <div class="text-6xl mb-6">{{ feature.icon }}</div>
-            <h3 class="text-xl font-bold mb-4 text-gray-800">{{ feature.title }}</h3>
-            <p class="text-gray-600">{{ feature.description }}</p>
-          </div>
+        <!-- CTA -->
+        <div class="text-center mt-16">
+          <router-link
+            to="/features"
+            class="inline-flex items-center gap-2 px-8 py-3 hover:bg-[#102A71] bg-[#001740] text-white font-semibold rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            Learn How It Works
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </router-link>
         </div>
       </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="py-20 bg-blue-600">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-          <div class="max-w-2xl mx-auto">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">Ready to Get Started?</h2>
-            <p class="text-xl text-white mb-8">
-              Join thousands of users who are already using Tap2Find to achieve their goals.
-            </p>
-            <router-link 
-              :to="{ name: 'register' }"
-              class="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
-            >
-              ➡️ Start Your Journey
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </template>
 
 <script setup>
-const features = [
-  {
-    icon: "🔍",
-    title: "Easy Discovery",
-    description: "Quickly find professors, schedules, and key information in just a few taps."
-  },
-  {
-    icon: "⚡",
-    title: "Real-Time Updates",
-    description: "Stay updated with the latest availability and announcements instantly."
-  },
-  {
-    icon: "🤝",
-    title: "Seamless Connection",
-    description: "Connect with the right people at the right time for better collaboration."
-  }
-];
+import { Icon } from '@iconify/vue'
 </script>
+
+<style scoped>
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes float-delayed {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+:global(.animate-float) {
+  animation: float 6s ease-in-out infinite;
+}
+
+:global(.animate-float-delayed) {
+  animation: float-delayed 6s ease-in-out infinite;
+  animation-delay: 1s;
+}
+</style>

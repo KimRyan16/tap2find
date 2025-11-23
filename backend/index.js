@@ -14,6 +14,7 @@ import authRoutes from "./routes/authRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import professorRoutes from "./routes/professorRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js"
 import attendanceRoutes from "./routes/attendanceRoutes.js";
@@ -121,6 +122,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/professors", professorRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/contact", contactRoutes);
+
 app.use("/api/notification", notificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/rfid", attendanceRoutes);

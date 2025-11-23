@@ -1,39 +1,11 @@
 <template>
-  <div class="bg-white min-h-screen pb-28 md:pb-16 p-6 md:p-10">
-    <!-- Header -->
-    <div class="flex items-start justify-between relative">
-      <div>
-        <h1 class="text-4xl font-semibold text-gray-900">Notification</h1>
-        <p class="text-base text-gray-500">
-          You have 
-          <span class="text-[#F5C400]">{{ totalTodayCount }} notification{{ totalTodayCount !== 1 ? 's' : '' }}</span> 
-          today.
-        </p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="px-3 py-2 text-sm rounded-lg border hover:bg-gray-50" @click="toggleSelectMode">{{ selectMode ? 'Cancel' : 'Select' }}</button>
-        <button v-if="selectMode" class="px-3 py-2 text-sm rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="selectedIds.length===0 || deletingSelected" @click="deleteSelected">Delete Selected</button>
-        <button v-if="selectMode" class="px-3 py-2 text-sm rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-50" :disabled="deletingAll" @click="deleteAll">Delete All</button>
-        <div class="relative" ref="menuRef">
-          <button class="p-2 rounded-full hover:bg-gray-100" aria-label="Filter" @click="toggleMenu">
-            <iconify-icon icon="mage:filter" class="text-2xl" />
-          </button>
-          <transition name="fade">
-            <div v-if="menuOpen" class="absolute right-0 mt-2 w-44 rounded-xl border border-gray-200 bg-white shadow-md overflow-hidden z-10">
-              <button @click="selectFilter(null)" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">All</button>
-              <button @click="selectFilter('today')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">Today</button>
-              <button @click="selectFilter('week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">This Week</button>
-              <button @click="selectFilter('month')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">This Month</button>
-            </div>
-          </transition>
-        </div>
-      </div>
-    </div>
-
+  <div class="bg-white min-h-screen pb-28 md:pb-16 py-4 md:p-4">
+    <!-- Header is rendered by ProfessorLayout; keep a small spacer for balance -->
     <div class="mt-2"></div>
 
+    <div class="px-0 md:px-6 py-4 min-h-0">
     <!-- Notifications List -->
-    <div class="mt-6 space-y-6">
+    <div class="mt-2 md:mt-6 space-y-6">
       <!-- Skeleton while loading -->
       <div v-if="loading" class="space-y-6">
         <section>
@@ -194,6 +166,7 @@
         <p class="text-gray-600">You currently have no notifications.</p>
       </div>
     </div>
+    </div>
 
     <!-- Delete Selected Confirmation Modal -->
     <transition enter-active-class="transition ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition ease-in duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
@@ -233,6 +206,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import api from '@/utils/api'
 
 // Toast helper (bottom-right)
@@ -343,10 +317,11 @@ const showToast = (message, type = 'success', duration = 2600) => {
   }, duration)
 }
 
-const selectedType = ref(null)
+const route = useRoute()
+// Reflect filter from the top nav via query string (?filter=...)
+const selectedType = computed(() => route.query.filter ?? null)
 const loading = ref(true)
-const menuOpen = ref(false)
-const menuRef = ref(null)
+// menu state moved into header component
 const notifications = ref([])
 const selectMode = ref(false)
 const selectedIds = ref([])
@@ -413,32 +388,13 @@ const olderNotifications = computed(() => {
   return filteredNotifications.value.filter(n => n.createdAt && !isToday(n.createdAt) && !isYesterday(n.createdAt))
 })
 
-// Count unread notifications for today
-const unreadCount = computed(() => {
-  return todayNotifications.value.filter(n => !n.read).length
-})
+// Count unread notifications for today (kept for potential badges)
+const unreadCount = computed(() => todayNotifications.value.filter(n => !n.read).length)
 
-// Count ALL notifications for today (read + unread)
-const totalTodayCount = computed(() => {
-  return todayNotifications.value.length
-})
-
-// Filter menu functions
-function toggleMenu() {
-  menuOpen.value = !menuOpen.value
-}
-
-function selectFilter(val) {
-  selectedType.value = val
-  menuOpen.value = false
-}
-
-function onClickOutside(e) {
-  if (!menuRef.value) return
-  if (!menuRef.value.contains(e.target)) {
-    menuOpen.value = false
-  }
-}
+// Window events from header component
+const handleToggleSelect = () => { toggleSelectMode() }
+const handleDeleteSelected = () => { deleteSelected() }
+const handleDeleteAll = () => { deleteAll() }
 
 // Selection mode handlers
 function toggleSelectMode() {
@@ -608,8 +564,9 @@ const initializeData = async () => {
 
 // ✅ On mount: load notifications
 onMounted(() => {
-  document.addEventListener('click', onClickOutside)
-  
+  window.addEventListener('notif:toggleSelect', handleToggleSelect)
+  window.addEventListener('notif:deleteSelected', handleDeleteSelected)
+  window.addEventListener('notif:deleteAll', handleDeleteAll)
   // Initialize data and start polling
   initializeData().then(() => {
     // Start polling after initial load is complete
@@ -618,7 +575,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', onClickOutside)
+  window.removeEventListener('notif:toggleSelect', handleToggleSelect)
+  window.removeEventListener('notif:deleteSelected', handleDeleteSelected)
+  window.removeEventListener('notif:deleteAll', handleDeleteAll)
   // Clean up interval when component is destroyed
   stopPolling()
 })

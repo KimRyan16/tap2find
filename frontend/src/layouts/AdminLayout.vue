@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex bg-slate-100 overflow-hidden p-4 gap-4">
+  <div class="min-h-screen flex bg-slate-100 overflow-hidden p-2 md:p-4 gap-4">
     <!-- Sidebar -->
     <div class="hidden md:flex md:w-64 md:flex-col">
       <div class="flex flex-col flex-grow pt-5 bg-white text-slate-900 overflow-y-auto rounded-2xl shadow">
@@ -171,12 +171,6 @@
           
           <!-- Right side actions -->
           <div class="ml-4 flex items-center md:ml-6 space-x-3">
-            <!-- Notifications -->
-            <button class="bg-slate-100 p-1 rounded-full text-slate-500 hover:text-[#001740] hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#001740] focus:ring-offset-white">
-              <span class="sr-only">View notifications</span>
-              <Bell class="w-4 h-4" />
-            </button>
-
             <!-- Profile block: direct link to Admin Profile -->
             <router-link
               to="/admin/profile"
@@ -280,8 +274,8 @@
         class="flex-1 relative focus:outline-none"
         :class="route.path === '/admin' ? 'overflow-y-hidden' : 'overflow-y-auto'"
       >
-        <div class="py-6">
-          <div class="max-w-7xl mx-auto px-0">
+        <div class="py-4 md:py-6">
+          <div class="w-full max-w-none mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
             <router-view></router-view>
           </div>
         </div>
@@ -320,7 +314,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { LayoutDashboard, Users, GraduationCap, MessagesSquare, FileText, Bell, ChevronDown } from 'lucide-vue-next'
+import { LayoutDashboard, Users, GraduationCap, MessagesSquare, FileText, ChevronDown } from 'lucide-vue-next'
 import axios from 'axios'
 
 const route = useRoute()
@@ -431,7 +425,7 @@ const handleLogout = () => {
 
   showLogoutConfirm.value = false
 
-  router.push('/login')
+  router.replace('/auth/login')
 }
 
 const openLogoutConfirm = () => {

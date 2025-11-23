@@ -1,10 +1,10 @@
 <template>
-  <section class="w-full p-6">
-    <div class="max-w-md mx-auto text-center min-h-[calc(100vh-220px)] flex flex-col items-center justify-start">
+  <section class="w-full p-4 md:p-6 flex items-center justify-center">
+    <div class="max-w-md mx-auto text-center min-h-0 flex flex-col items-center justify-center">
       <div class="w-full">
         <!-- Current Status Card -->
         <div
-          class="relative overflow-hidden rounded-2xl px-6 py-7 text-2xl font-bold tracking-wide text-white shadow-lg ring-1 ring-white/10"
+          class="relative overflow-hidden rounded-2xl px-4 py-5 md:px-6 md:py-7 text-xl md:text-2xl font-bold tracking-wide text-white shadow-lg ring-1 ring-white/10"
           :class="statusGradientClass"
         >
           <div class="absolute inset-0 pointer-events-none">
@@ -15,25 +15,29 @@
         </div>
 
         <!-- Last Update Cards -->
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          <div class="bg-gray-500 text-white rounded-xl px-5 py-4 shadow-sm">
-            <div class="text-base font-semibold">Last RFID Tap</div>
-            <div class="text-xs opacity-90">{{ lastRfidTap || 'No RFID tap recorded' }}</div>
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+          <div class="bg-gray-500 text-white rounded-xl px-4 py-3 md:px-5 md:py-4 shadow-sm">
+            <div class="text-sm md:text-base font-semibold">Last RFID Tap</div>
+            <div class="text-[11px] md:text-xs opacity-90">{{ lastRfidTap || 'No RFID tap recorded' }}</div>
           </div>
-          <div class="bg-gray-400 text-white rounded-xl px-5 py-4 shadow-sm">
-            <div class="text-base font-semibold">Manual Updates</div>
-            <div class="text-xs opacity-90">{{ lastManualUpdate || 'No manual updates' }}</div>
+          <div class="bg-gray-400 text-white rounded-xl px-4 py-3 md:px-5 md:py-4 shadow-sm">
+            <div class="text-sm md:text-base font-semibold">Manual Updates</div>
+            <div class="text-[11px] md:text-xs opacity-90">{{ lastManualUpdate || 'No manual updates' }}</div>
           </div>
         </div>
 
         <!-- Notification History -->
-        <div class="mt-8 text-left">
-          <h2 class="text-lg font-semibold text-gray-900 mb-2">Notification History</h2>
-          <ul class="space-y-2" v-if="notificationHistory.length > 0">
+        <div class="mt-6 md:mt-8 text-left">
+          <h2 class="text-base md:text-lg font-semibold text-gray-900 mb-2">Notification History</h2>
+          <!-- Spinner while loading history -->
+          <div v-if="loadingHistory" class="w-full flex items-center justify-center py-5 md:py-6">
+            <span class="w-5 h-5 md:w-6 md:h-6 border-2 border-gray-300 border-t-[#102A71] rounded-full animate-spin"></span>
+          </div>
+          <ul class="space-y-2" v-else-if="notificationHistory.length > 0">
             <li 
               v-for="(notification, index) in notificationHistory" 
               :key="index"
-              class="rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-700 bg-white"
+              class="rounded-lg border border-gray-200 px-3 py-2 md:px-4 md:py-3 text-xs md:text-sm text-gray-700 bg-white"
             >
               <div class="font-medium">{{ formatDisplayDate(notification.timestamp) }}</div>
               <div class="opacity-80">{{ getNotificationMessage(notification) }}</div>
@@ -60,6 +64,8 @@ const currentStatus = ref('')
 const lastRfidTap = ref('')
 const lastManualUpdate = ref('')
 const notificationHistory = ref([])
+const loadingHistory = ref(false)
+const hasLoadedHistory = ref(false)
 const professorUid = ref('')
 const isLoading = ref(true)
 const pollInterval = ref(null) // Added for polling
@@ -160,6 +166,8 @@ const fetchCurrentStatus = async () => {
 // Fetch status history from rfid_logs
 const fetchStatusHistory = async () => {
   try {
+    // Only show spinner on first load to prevent flashing during polling
+    loadingHistory.value = !hasLoadedHistory.value
     if (!professorUid.value) {
       console.error('No professor UID available')
       return
@@ -173,9 +181,12 @@ const fetchStatusHistory = async () => {
       processHistoryData(historyData)
       
       console.log('🔄 Polled status history:', historyData.length, 'records')
+      hasLoadedHistory.value = true
     }
   } catch (error) {
     console.error('❌ Error fetching status history:', error)
+  } finally {
+    loadingHistory.value = false
   }
 }
 

@@ -4,8 +4,9 @@ export const getDashboardStats = async (req, res) => {
   try {
     const db = getDB("tap2find_db");
     const users = db.collection("users");
-    const concerns = db.collection("concerns");
-    const tapins = db.collection("tapins");
+    // Fix: real collection names in this project
+    const concerns = db.collection("inquiries");
+    const rfidLogs = db.collection("rfid_logs");
 
     // Today range
     const start = new Date();
@@ -21,10 +22,13 @@ export const getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       users.countDocuments({ $expr: { $eq: [ { $toLower: { $trim: { input: "$role" } } }, "professor" ] } }),
       users.countDocuments({ $expr: { $eq: [ { $toLower: { $trim: { input: "$role" } } }, "student" ] } }),
+      // Count all concerns from the inquiries collection
       concerns.countDocuments(),
-      tapins.countDocuments({
+      // Count today's RFID-related logs using available date fields
+      rfidLogs.countDocuments({
         $or: [
           { timestamp: { $gte: start, $lt: end } },
+          { receivedAt: { $gte: start, $lt: end } },
           { createdAt: { $gte: start, $lt: end } },
         ],
       }),

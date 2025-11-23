@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <div class="px-4 md:px-6 pt-8">
+  <div class="bg-white min-h-screen pb-20 md:pb-8 py-4 md:p-4">
+    <div class="px-0 md:px-6 pt-8">
       <div class="mb-4">
         <button @click="goBack" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 ">
           <iconify-icon icon="ion:chevron-back" class="text-base" />
@@ -62,7 +62,7 @@
           </div>
         </div>
         <div class="mt-4 flex justify-end">
-          <button @click="savePassword" :disabled="loading.password" class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="savePassword" :disabled="loading.password" class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-md md:rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed">
             {{ loading.password ? 'Updating...' : 'Update Password' }}
           </button>
         </div>
@@ -102,7 +102,7 @@
           </div>
         </div>
         <div class="mt-4 flex justify-end">
-          <button @click="saveNotifications" :disabled="loading.notifications" class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="saveNotifications" :disabled="loading.notifications" class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-md md:rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed">
             {{ loading.notifications ? 'Saving...' : 'Save Preferences' }}
           </button>
         </div>
@@ -197,18 +197,18 @@
             <div class="text-sm text-gray-600">
               {{ sessions.length }} active session{{ sessions.length !== 1 ? 's' : '' }}
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-1 md:gap-2">
               <button 
                 @click="signOutAll" 
                 :disabled="loading.signOutAll || sessions.length <= 1"
-                class="px-4 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-2 py-1 md:px-4 md:py-2 text-[11px] md:text-sm rounded md:rounded-xl bg-red-50 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {{ loading.signOutAll ? 'Signing out...' : 'Sign out all devices' }}
               </button>
               <button 
                 @click="saveSecuritySettings" 
                 :disabled="loading.security" 
-                class="px-4 py-2 rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-2 py-1 md:px-4 md:py-2 text-[11px] md:text-sm rounded md:rounded-lg bg-[#102A71] text-white hover:bg-[#102A71]/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {{ loading.security ? 'Saving...' : 'Save Security Settings' }}
               </button>

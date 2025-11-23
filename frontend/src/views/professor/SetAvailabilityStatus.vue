@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-white min-h-screen pb-20 md:pb-8 p-4 md:p-4">
-    <div class="max-w-4xl mx-auto flex flex-col min-h-[calc(100vh-2rem)]">
+  <div class="bg-white min-h-screen pb-16 md:pb-8 py-3 md:p-4">
+    <div class="px-0 md:px-6 pt-6 md:pt-8 max-w-4xl mx-auto flex flex-col min-h-0">
       <!-- Step header with dot indicators and Step X/3 label -->
-      <div class="mt-6 mb-4">
+      <div class="mt-1 md:mt-6 mb-2 md:mb-4">
         <div class="flex items-center justify-between">
           <button @click="router.back()" class="inline-flex items-center p-2 hover:text-gray-400 text-gray-700">
-            <iconify-icon icon="famicons:chevron-back-outline" class="text-2xl" />
+            <iconify-icon icon="famicons:chevron-back-outline" class="text-xl sm:text-2xl" />
           </button>
           <div class="flex-1 flex flex-col items-center px-2">
             <div class="flex items-center gap-2">
@@ -13,11 +13,21 @@
                     class="inline-block h-2 rounded-full transition-all duration-200"
                     :class="i === currentStepIndex ? 'w-6 bg-[#102A71]' : 'w-2 bg-gray-300'" />
             </div>
-            <div class="text-sm text-gray-600 mt-1">{{ stepLabel }}</div>
+            <div class="text-xs sm:text-sm text-gray-600 mt-1">{{ stepLabel }}</div>
           </div>
-          <button @click="next" :disabled="isLastStep" class="text-sm font-medium"
-                  :class="isLastStep ? 'text-gray-300 cursor-default' : 'text-gray-900 hover:underline'">
+          <button
+            v-if="!isLastStep"
+            @click="next"
+            class="text-xs sm:text-sm font-medium text-gray-900 hover:underline"
+          >
             Next
+          </button>
+          <button
+            v-else
+            @click="done"
+            class="text-xs sm:text-sm font-semibold text-gray-900 hover:underline"
+          >
+            Done
           </button>
         </div>
       </div>
@@ -71,6 +81,9 @@ const prev = () => {
   if (currentStep.value > 0) {
     router.push(steps[currentStep.value - 1].route)
   }
+}
+const done = () => {
+  router.push({ name: 'professor-dashboard' })
 }
  
 </script>

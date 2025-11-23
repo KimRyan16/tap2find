@@ -1,26 +1,23 @@
 <template>
-  <section class="w-full p-6">
-    <div
-      class="max-w-md mx-auto text-center min-h-[calc(100vh-220px)] flex flex-col items-center justify-start pt-2"
-    >
-      <!-- Animation pinned closer to the very top -->
-      <div class="flex justify-center mt-0 mb-4 -translate-y-4 md:-translate-y-6">
-        <div
-          class="w-52 h-52 md:w-64 md:h-64 rounded-full bg-gray-50 overflow-hidden flex items-center justify-center"
-        >
-          <dotlottie-player
-            src="https://lottie.host/aac6b5be-196d-46ce-bc48-4f63d61721c7/XL5CWAG6Ai.lottie"
-            autoplay
-            loop
-            style="width: 100%; height: 100%"
-          />
+  <section class="w-full p-4 md:p-6 flex items-center justify-center">
+    <div class="max-w-md mx-auto text-center min-h-0 flex flex-col items-center justify-center pt-1">
+      <!-- Animation (auto-loop) -->
+      <div class="mt-12 flex justify-center mt-0 mb-12">
+        <div class="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+          <iframe
+            src="https://lottie.host/embed/7bc710c0-79e1-4538-9d1f-b891dd3c725b/PtEJ86BmeO.lottie"
+            title="Tap Animation"
+            class="w-full h-full"
+            allow="autoplay"
+            frameborder="0"
+          ></iframe>
         </div>
       </div>
 
       <!-- Text -->
-      <h1 class="text-4xl font-semibold text-[#102A71] mb-24">Good day, Prof!</h1>
-      <p class="text-2xl  font-semibold mb-1">Tap to start your day.</p>
-      <p class="text-base text-gray-500">
+      <h1 class="text-3xl sm:text-3xl font-semibold text-[#102A71] mt-8 mb-16 sm:mb-4">Good day, Prof!</h1>
+      <p class="text-xl sm:text-xl font-semibold ">Tap to start your day.</p>
+      <p class="text-sm sm:text-base text-gray-500">
         Please tap your RFID to set your status to <span class="font-medium" :class="statusColorClass">{{ displayStatus }}</span> so students can find you.
       </p>
     </div>
@@ -56,38 +53,35 @@ const displayStatus = computed(() => {
   return 'Not Available' // Default fallback
 })
 
-// const fetchCurrentUserStatus = async () => {
-//   try {
-//     const storedUser = localStorage.getItem('user')
-//     if (!storedUser) {
-//       console.error('No user found in localStorage')
-//       return
-//     }
+const fetchCurrentUserStatus = async () => {
+  try {
+    const storedUser = localStorage.getItem('user')
+    if (!storedUser) {
+      console.error('No user found in localStorage')
+      return
+    }
 
-//     const parsedUser = JSON.parse(storedUser)
-    
-//     // Initialize user data from localStorage first
-//     user.value = { ...parsedUser }
-    
-//     // Then fetch the latest status from API
-//     const response = await api.get(`/professors/${parsedUser.id}/status`)
-    
-//     if (response.data.success) {
-//       // Update the user status with real-time data
-//       user.value.status = response.data.data.status
-      
-//       // Also update localStorage with the latest status
-//       const updatedUser = { ...parsedUser, status: response.data.data.status }
-//       localStorage.setItem('user', JSON.stringify(updatedUser))
-      
-//       console.log('✅ Updated user status:', response.data.data.status)
-//     }
-//   } catch (error) {
-//     console.error('Error fetching user status:', error)
-//     // If API fails, use the status from localStorage
-//     console.log('Using status from localStorage:', user.value.status)
-//   }
-// }
+    const parsedUser = JSON.parse(storedUser)
+    // Initialize user data from localStorage first
+    user.value = { ...parsedUser }
+
+    // Then fetch the latest status from API (best-effort)
+    try {
+      const response = await api.get(`/professors/${parsedUser.id}/status`)
+      if (response?.data?.success && response?.data?.data?.status) {
+        user.value.status = response.data.data.status
+        const updatedUser = { ...parsedUser, status: response.data.data.status }
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+        console.log('✅ Updated user status:', response.data.data.status)
+      }
+    } catch (innerErr) {
+      // Silent fallback: keep local status
+      console.warn('Status API unavailable, using local status')
+    }
+  } catch (error) {
+    console.error('Error fetching user status:', error)
+  }
+}
 
 onMounted(() => {
   // Load initial user data from localStorage immediately
@@ -95,15 +89,7 @@ onMounted(() => {
   if (storedUser) {
     user.value = JSON.parse(storedUser)
   }
-  
-  // Load Lottie player
-  if (!customElements.get('dotlottie-player')) {
-    const s = document.createElement('script')
-    s.src = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js'
-    s.type = 'module'
-    document.head.appendChild(s)
-  }
-  
+
   // Fetch latest status
   fetchCurrentUserStatus()
 })

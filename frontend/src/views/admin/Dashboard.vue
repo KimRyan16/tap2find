@@ -236,7 +236,7 @@
     <!-- Charts Section -->
     <div class="flex flex-col lg:flex-row lg:items-stretch gap-8 mb-8">
       <!-- Daily Student Concerns (Last 14 days) -->
-      <div class="bg-white shadow rounded-2xl flex-1 flex flex-col min-h-[28rem] border border-slate-100 overflow-hidden">
+      <div class="bg-white shadow rounded-2xl flex-1 flex flex-col min-h-[40rem] border border-slate-100 overflow-hidden">
         <!-- Header -->
         <div class="px-6 pt-5 pb-4 border-b border-slate-100 bg-white flex items-center justify-between">
           <div>
@@ -249,7 +249,7 @@
 
         <!-- Chart body -->
         <div class="px-6 pt-4 pb-4 flex-1 flex flex-col">
-          <div class="h-48 relative border-b border-slate-200 pb-2">
+          <div class="h-64 relative border-b border-slate-200 pb-2">
             <!-- Horizontal gridlines (no numbers) -->
             <div class="absolute inset-0 pointer-events-none flex flex-col justify-between">
               <div
@@ -292,47 +292,50 @@
               </div>
             </div>
           </div>
-          <!-- Latest concern -->
+          <!-- Recent concerns (top 3) -->
           <div class="mt-6">
-            <div class="text-sm font-medium text-[#001740] mb-2">Latest Student Concern</div>
-            <div
-              v-if="latestConcern"
-              class="flex items-start justify-between text-xs bg-gradient-to-r from-slate-50 via-slate-50 to-slate-100 border border-slate-100 rounded-xl px-3 py-2"
-            >
-              <!-- Left content: concern info -->
-              <div class="mr-3 flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-0.5">
-                  <span class="text-[10px] uppercase tracking-wide text-slate-400">Concern</span>
+            <div class="text-sm font-medium text-[#001740] mb-2">Recent Student Concerns</div>
+            <div v-if="recentConcernsTop3 && recentConcernsTop3.length" class="space-y-2">
+              <div
+                v-for="(c, idx) in recentConcernsTop3"
+                :key="c._id || c.id || idx"
+                class="flex items-start justify-between text-xs bg-gradient-to-r from-slate-50 via-slate-50 to-slate-100 border border-slate-100 rounded-xl px-3 py-2"
+              >
+                <!-- Left content: concern info -->
+                <div class="mr-3 flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-0.5">
+                    <span class="text-[10px] uppercase tracking-wide text-slate-400">Concern</span>
+                  </div>
+                  <div class="font-semibold text-slate-900 truncate">
+                    {{ c.title || c.subject || 'No title provided' }}
+                  </div>
+                  <div class="text-slate-500 truncate">
+                    {{ c.studentName || (c.student && c.student.name) || 'Unknown student' }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 mt-0.5 truncate">
+                    {{ c.message || c.description || c.details || 'No message provided' }}
+                  </div>
                 </div>
-                <div class="font-semibold text-slate-900 truncate">
-                  {{ latestConcern.title || latestConcern.subject || 'No title provided' }}
-                </div>
-                <div class="text-slate-500 truncate">
-                  {{ latestConcern.studentName || (latestConcern.student && latestConcern.student.name) || 'Unknown student' }}
-                </div>
-                <div class="text-[11px] text-slate-500 mt-0.5 truncate">
-                  {{ latestConcern.message || latestConcern.description || latestConcern.details || 'No message provided' }}
-                </div>
-              </div>
 
-              <!-- Right content: top-right status, bottom-right date/time -->
-              <div class="flex flex-col justify-between items-end text-right flex-shrink-0 gap-2">
-                <!-- Status chip (top-right) -->
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border"
-                  :class="latestConcernStatusClass(latestConcern)"
-                >
-                  {{ latestConcernStatusText(latestConcern) }}
-                </span>
+                <!-- Right content: top-right status, bottom-right date/time -->
+                <div class="flex flex-col justify-between items-end text-right flex-shrink-0 gap-2">
+                  <!-- Status chip (top-right) -->
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                    :class="latestConcernStatusClass(c)"
+                  >
+                    {{ latestConcernStatusText(c) }}
+                  </span>
 
-                <!-- Date + time (bottom-right) -->
-                <div class="flex flex-col items-end gap-0.5">
-                  <span class="text-[11px] font-medium text-[#102A71]">
-                    {{ latestConcernDate(latestConcern) }}
-                  </span>
-                  <span class="text-[11px] text-slate-500">
-                    {{ latestConcernTime(latestConcern) }}
-                  </span>
+                  <!-- Date + time (bottom-right) -->
+                  <div class="flex flex-col items-end gap-0.5">
+                    <span class="text-[11px] font-medium text-[#102A71]">
+                      {{ latestConcernDate(c) }}
+                    </span>
+                    <span class="text-[11px] text-slate-500">
+                      {{ latestConcernTime(c) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -343,7 +346,7 @@
 
       <!-- Right column: Professor Availability + greeting banner -->
       <div class="flex flex-col gap-4 flex-1">
-        <div class="bg-white shadow rounded-lg p-6">
+        <div class="bg-white shadow rounded-lg p-6 min-h-[14rem]">
           <h3 class="text-sm font-semibold tracking-[0.18em] text-[#001740] uppercase mb-3">Professor Availability</h3>
           <div class="space-y-4">
             <!-- Solid availability bar -->
@@ -411,7 +414,7 @@
         </div>
 
         <!-- Greeting banner -->
-        <div class="shadow rounded-lg p-4 border border-slate-900/40 flex items-center justify-between bg-[#001740]">
+        <div class="shadow rounded-lg p-4 border border-slate-900/40 flex items-center justify-between bg-[#001740] min-h-[10rem]">
           <!-- Left: greeting text -->
           <div class="mr-4 flex flex-col justify-center">
             <div>
@@ -433,7 +436,7 @@
         </div>
 
         <!-- Recent Activity card -->
-        <div class="shadow rounded-lg p-6 border border-[#F5C400]/60 bg-[#F5C400] flex-1 flex flex-col">
+        <div class="shadow rounded-lg p-6 border border-[#F5C400]/60 bg-[#F5C400] flex-1 flex flex-col min-h-[14rem]">
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-semibold tracking-[0.18em] text-[#001740] uppercase">Recent Activity</h3>
             <div class="text-right text-[11px] leading-tight text-[#3b2a00]">
@@ -649,6 +652,15 @@ export default {
         return bDate - aDate
       })
       return list[0] || null
+    },
+    recentConcernsTop3() {
+      const list = Array.isArray(this.concerns) ? [...this.concerns] : []
+      list.sort((a, b) => {
+        const aDate = new Date(a.createdAt || a.updatedAt || a.timestamp || a.date || 0)
+        const bDate = new Date(b.createdAt || b.updatedAt || b.timestamp || b.date || 0)
+        return bDate - aDate
+      })
+      return list.slice(0, 3)
     },
     currentDayName() {
       const now = new Date();
