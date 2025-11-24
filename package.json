@@ -1,1 +1,8 @@
-{}
+{
+  "name": "tap2find-monorepo",
+  "private": true,
+  "scripts": {
+    "start": "yarn --cwd backend start",
+    "dev": "yarn --cwd backend xian"
+  }
+}
