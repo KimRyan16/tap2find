@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+**/node_modules/
+# Logs
+npm-debug.log*
+yarn-error.log*
+# Env files
+*.env
+*.env.*
+frontend/.env
+backend/.env
+# Build outputs
+dist/
+build/
+.out/
+.next/
+.cache/
+coverage/
+# IDE/OS
+.vscode/
+.DS_Store
+Thumbs.db
+# Tooling
+.qodo/
